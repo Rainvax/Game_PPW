@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión Ágora: La Hora Pico</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main id="game-container">
+        <header>
+            <h1>Misión Ágora: La Hora Pico</h1>
+            <p>Universidad Nacional de Colombia - Sede Medellín</p>
+        </header>
+
+        <!-- Fase 1: El Caos -->
+        <section id="phase1" class="active-phase">
+            <h2>Fase 1: ¡El Caos!</h2>
+            <p>Es la hora pico. ¡Atiende a los estudiantes lo más rápido que puedas! Haz clic en ellos.</p>
+            <div class="stats-container">
+                <div class="stat">
+                    <span>Satisfacción:</span>
+                    <div class="bar-container"><div id="satisfaction-bar" class="bar"></div></div>
+                </div>
+                <div class="stat">
+                    <span>Estrés del Sistema:</span>
+                    <div class="bar-container"><div id="stress-bar" class="bar"></div></div>
+                </div>
+            </div>
+            <div id="game-area-1" class="game-area"></div>
+            <div id="phase1-message" class="message"></div>
+        </section>
+
+        <!-- Fase 2: Investigando las Causas -->
+        <section id="phase2">
+            <h2>Fase 2: Investigando las Causas</h2>
+            <p>El sistema ha colapsado. Haz clic en los puntos de información para entender por qué.</p>
+            <div id="game-area-2" class="game-area"></div>
+            <button id="btn-phase2-next" class="btn-next">Entendido. Continuar...</button>
+        </section>
+
+        <!-- Fase 3: Encontrando Soluciones -->
+        <section id="phase3">
+            <h2>Fase 3: ¡Manos a la Obra!</h2>
+            <p>Eres el nuevo gerente. Elige soluciones para mejorar el comedor con un presupuesto limitado.</p>
+            <div class="stats-container">
+                <div class="stat">
+                    <span>Presupuesto:</span>
+                    <span id="budget-display">$20,000</span>
+                </div>
+                <div class="stat">
+                    <span>Satisfacción Proyectada:</span>
+                    <span id="satisfaction-display">20%</span>
+                </div>
+            </div>
+            <div id="solutions-panel" class="solutions-panel"></div>
+            <button id="btn-simulate" class="btn-simulate">Simular Hora Pico</button>
+        </section>
+
+        <!-- Pantalla de Fin -->
+        <section id="end-screen">
+            <h2 id="end-title"></h2>
+            <p id="end-message"></p>
+            <button id="btn-restart" class="btn-restart">Jugar de Nuevo</button>
+        </section>
+
+        <!-- Modal para información de la Fase 2 -->
+        <div id="info-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h3 id="modal-title"></h3>
+                <p id="modal-text"></p>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
