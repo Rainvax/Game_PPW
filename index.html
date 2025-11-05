@@ -310,7 +310,6 @@
         
         <!-- CONTENEDOR PARA LA PISTA -->
         <div class="hint-container">
-            <!-- CAMBIO: Texto del botón actualizado -->
             <button id="hint-btn">OBTENER PISTA</button>
             <p id="hint-display" class="hidden"></p>
         </div>
@@ -330,7 +329,7 @@
         </div>
         <h3>Mis Palabras</h3>
         <div class="word-list" id="word-list-container">
-            <p style="text-align: center; color: #888;">No has añadido ninguna palabra.</p>
+            <p style="text-align: center; color: #888;">No has añadido ninguna palabra personalizada.</p>
         </div>
         <button id="back-to-menu-btn">VOLVER AL MENÚ</button>
     </div>
@@ -361,13 +360,67 @@
         }
 
         // --- GESTIÓN DE PALABRAS ---
+        // Lista de palabras predeterminadas combinada
+        const defaultWords = [
+            { english: "OVERCROWDING", definition: "A situation where too many people occupy a space, exceeding its comfortable capacity.", spanish: "Sobrepoblación" },
+            { english: "LONG LINES", definition: "Students must wait in these, which wastes their valuable time.", spanish: "Filas Largas" },
+            { english: "WAITING TIMES", definition: "These are described as 'excessive' during the busiest hours.", spanish: "Tiempos de Espera" },
+            { english: "LACK OF SEATING", definition: "The problem of not having enough chairs or tables for students.", spanish: "Falta de Asientos" },
+            { english: "CAPACITY", definition: "The dining hall does not have enough of this to handle the large number of students.", spanish: "Capacidad" },
+            { english: "INEFFICIENT", definition: "A word describing the system that fails to distribute demand well.", spanish: "Ineficiente" },
+            { english: "NEGATIVE EXPERIENCE", definition: "This is the overall result for students trying to eat during peak hours.", spanish: "Experiencia Negativa" },
+            { english: "CONGESTION", definition: "A synonym for overcrowding, often used for traffic but applies here.", spanish: "Congestión" },
+            { english: "SERVICE LINES", definition: "There are not enough of these to serve the food quickly.", spanish: "Líneas de Servicio" },
+            { english: "PROBLEM", definition: "The general term for the negative situation at the Ágora dining hall.", spanish: "Problema" },
+            { english: "SUBSIDY", definition: "The financial support from the university that makes the lunch very cheap.", spanish: "Subsidio" },
+            { english: "HIGH DEMAND", definition: "This is the main consequence of the affordable, subsidized meals.", spanish: "Alta Demanda" },
+            { english: "AFFORDABLE", definition: "A description of the lunch price, meaning it is very cheap.", spanish: "Asequible" },
+            { english: "SUBSIDIZED MEALS", definition: "The food items that are offered at a very low price.", spanish: "Comidas Subsidiadas" },
+            { english: "PRICE", definition: "The low ______ of the lunch is the root cause of the problem.", spanish: "Precio" },
+            { english: "GROWING DEMAND", definition: "The need for the service has increased over the years.", spanish: "Demanda Creciente" },
+            { english: "STUDENT POPULATION", definition: "The increase in this group has made the problem more noticeable.", spanish: "Población Estudiantil" },
+            { english: "INCREASE", definition: "The opposite of decrease; the student population has seen this.", spanish: "Aumento" },
+            { english: "ÁGORA", definition: "The specific name of the dining hall where the problem occurs.", spanish: "Ágora" },
+            { english: "DINING HALL", definition: "The general name for the cafeteria or place where students eat.", spanish: "Comedor" },
+            { english: "CAMPUS", definition: "The problem happens at the Universidad Nacional–Medellín ______.", spanish: "Campus" },
+            { english: "UNIVERSIDAD NACIONAL", definition: "The institution that provides the subsidy and owns the dining hall.", spanish: "Universidad Nacional" },
+            { english: "MEDELLÍN", definition: "The city where this specific campus is located.", spanish: "Medellín" },
+            { english: "PEAK HOURS", definition: "The busiest time of day, from 12:00 PM to 2:00 PM.", spanish: "Horas Pico" },
+            { english: "LUNCH", definition: "The specific meal that causes the high demand.", spanish: "Almuerzo" },
+            { english: "NOON", definition: "The time when the peak hours begin; 12:00 PM.", spanish: "Mediodía" },
+            { english: "SEMESTER", definition: "The problem is especially evident during the academic ______.", spanish: "Semestre" },
+            { english: "FOR YEARS", definition: "This is not a new problem; it has existed ______.", spanish: "Por Años" },
+            { english: "STUDENTS", definition: "The main group of people affected by the long lines.", spanish: "Estudiantes" },
+            { english: "WORKERS", definition: "The cafeteria ______ who must serve long lines and deal with stress.", spanish: "Trabajadores" },
+            { english: "STAFF", definition: "Other university employees, besides students and professors, who want to eat.", spanish: "Personal" },
+            { english: "PROFESSORS", definition: "This academic group is also affected by the overcrowding.", spanish: "Profesores" },
+            { english: "AFFECTED", definition: "The word describing the groups of people impacted by the problem.", spanish: "Afectado/s" },
+            { english: "STUDENT GROUPS", definition: "Certain ______ are the ones who receive the subsidy.", spanish: "Grupos Estudiantiles" },
+            { english: "POPULATION", definition: "The student ______ has increased, making the problem worse.", spanish: "Población" },
+            { english: "STRESS", definition: "The negative feeling that the cafeteria workers experience during peak demand.", spanish: "Estrés" },
+            { english: "STUDY TIME", definition: "Students lose valuable ______ because of the excessive waiting.", spanish: "Tiempo de Estudio" },
+            { english: "CLASS TIME", definition: "Students may also lose this if the wait is too long.", spanish: "Tiempo de Clase" },
+            { english: "VALUABLE", definition: "A word describing the kind of time (for study or class) that students lose.", spanish: "Valioso" },
+            { english: "WAIT", definition: "The verb for what students must do in the long lines.", spanish: "Esperar" },
+            { english: "EAT", definition: "The primary reason students go to the dining hall.", spanish: "Comer" },
+            { english: "RELY ON", definition: "Students who 'depend on' or '______' the subsidized lunch are the most affected.", spanish: "Depender de" },
+            { english: "EFFICIENTLY", definition: "The current system does not distribute demand in this way.", spanish: "Eficientemente" },
+            { english: "NOTICEABLE", definition: "The problem has become more ______ as the student population has grown.", spanish: "Notorio / Evidente" },
+            { english: "TABLES", definition: "A type of furniture that is very hard to find available.", spanish: "Mesas" },
+            { english: "CHAIRS", definition: "Another word for the seats that are lacking.", spanish: "Sillas" },
+            { english: "SOLUTION", definition: "What is needed to fix this entire problem.", spanish: "Solución" },
+            { english: "SYSTEM", definition: "The current ______ does not work well to manage the demand.", spanish: "Sistema" },
+            { english: "QUEUE", definition: "A British English synonym for 'line'.", spanish: "Fila" },
+            { english: "LOST TIME", definition: "The main consequence for students waiting in line.", spanish: "Tiempo Perdido" }
+        ];
+
         function getWords() {
             try {
                 const savedWords = JSON.parse(localStorage.getItem('hangmanWords') || '[]');
-                return savedWords;
+                return [...defaultWords, ...savedWords];
             } catch (error) {
-                console.error("Error al cargar palabras personalizadas desde localStorage.", error);
-                return [];
+                console.error("Error al cargar palabras desde localStorage.", error);
+                return [...defaultWords];
             }
         }
 
@@ -407,19 +460,17 @@
         const currentWordNumSpan = document.getElementById('current-word-num');
         const totalWordsNumSpan = document.getElementById('total-words-num');
         
-        // ELEMENTOS DEL DOM PARA LA PISTA
         const hintBtn = document.getElementById('hint-btn');
         const hintDisplay = document.getElementById('hint-display');
 
         function startGame() {
             allWords = getWords();
             if (allWords.length === 0) {
-                alert("No tienes palabras personalizadas. Por favor, ve a 'ADMINISTRAR PALABRAS' y añade algunas antes de jugar.");
+                alert("No hay palabras disponibles. Por favor, añade algunas.");
                 showScreen(manageWordsScreen);
                 return;
             }
             
-            // Barajar el array de palabras para un orden aleatorio
             for (let i = allWords.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
@@ -433,7 +484,7 @@
 
         function setupNewWord() {
             if (currentWordIndex >= allWords.length) {
-                alert('¡Has completado todas tus palabras! Gracias por jugar.');
+                alert('¡Has completado todas las palabras! Gracias por jugar.');
                 showScreen(startScreen);
                 return;
             }
@@ -443,7 +494,6 @@
             remainingGuesses = 6;
             currentWordNumSpan.textContent = currentWordIndex + 1;
             
-            // RESET DE LA PISTA PARA CADA RONDA NUEVA
             hintDisplay.textContent = '';
             hintDisplay.classList.add('hidden');
             hintBtn.disabled = false;
@@ -547,7 +597,7 @@
             }
 
             if (customWords.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #888;">No has añadido ninguna palabra.</p>';
+                container.innerHTML = '<p style="text-align: center; color: #888;">No has añadido ninguna palabra personalizada.</p>';
                 return;
             }
 
@@ -561,9 +611,15 @@
                         <p class="word-definition">${word.definition}</p>
                         <p class="word-spanish">${word.spanish}</p>
                     </div>
-                    <button class="delete-btn" onclick="deleteCustomWord(${index})">Eliminar</button>
+                    <button class="delete-btn" data-index="${index}">Eliminar</button>
                 `;
                 container.appendChild(item);
+
+                const deleteBtn = item.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                    const indexToDelete = parseInt(deleteBtn.dataset.index, 10);
+                    deleteCustomWord(indexToDelete);
+                });
             });
         }
 
@@ -600,16 +656,10 @@
             setupNewWord();
         });
 
-        // EVENT LISTENER PARA EL BOTÓN DE PISTA (SIN PENALIZACIÓN)
         hintBtn.addEventListener('click', () => {
-            // Muestra la pista
             hintDisplay.textContent = `Pista: ${currentWordObject.definition}`;
             hintDisplay.classList.remove('hidden');
-            
-            // Deshabilita el botón para esta ronda
             hintBtn.disabled = true;
-            
-            // PENALIZACIÓN ELIMINADA
         });
 
         }); // Fin de DOMContentLoaded
