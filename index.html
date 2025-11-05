@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego del Ahorcado</title>
+    
+    <!-- Google Fonts para un estilo más moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
     <style>
         /* Estilos CSS */
         body {
@@ -104,25 +110,101 @@
             letter-spacing: 0.8rem;
             margin: 20px 0;
             font-weight: bold;
-            font-family: 'Courier New', Courier, monospace; /* Fuente monoespaciada para mejor alineación */
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* NUEVO: Estilo para el espaciado entre palabras */
         .word-gap {
             display: inline-block;
-            width: 2.5rem; /* Ancho del hueco entre palabras */
+            width: 2.5rem;
         }
 
+        /* --- ESTILO PARA EL CONTENEDOR DE LA PISTA --- */
+        .hint-container {
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #hint-btn {
+            background-color: #FF9800; /* Color naranja para la pista */
+            font-size: 0.9rem;
+            padding: 8px 20px;
+        }
+        #hint-btn:hover:not(:disabled) {
+            background-color: #e68900;
+        }
+        #hint-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        #hint-display {
+            margin-top: 10px;
+            font-style: italic;
+            color: #ccc;
+            font-size: 1rem;
+            max-width: 80%;
+        }
+
+        /* --- DISEÑO DEL TECLADO CON RETROALIMENTACIÓN --- */
         .keyboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-            gap: 8px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, 55px);
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 25px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
         }
 
         .letter-btn {
-            padding: 15px;
-            font-size: 1.2rem;
+            background-color: #1e1e1e;
+            color: #a0a0a0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            border: none;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 6px 6px 12px #161616, -6px -6px 12px #262626;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .letter-btn:hover:not(:disabled):not(.correct-letter):not(.incorrect-letter) {
+            color: #2196F3;
+            box-shadow: inset 6px 6px 12px #161616, inset -6px -6px 12px #262626;
+            transform: scale(0.98);
+        }
+
+        .letter-btn:active:not(:disabled):not(.correct-letter):not(.incorrect-letter) {
+            box-shadow: inset 6px 6px 12px #161616, inset -6px -6px 12px #262626;
+            transform: scale(0.95);
+        }
+        
+        .letter-btn.correct-letter {
+            background-color: #2a4a3a;
+            color: #8bc34a;
+            box-shadow: inset 4px 4px 8px #1a2a1a, inset -4px -4px 8px #3a5a4a;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .letter-btn.incorrect-letter {
+            background-color: #4a2a2a;
+            color: #e57373;
+            box-shadow: inset 4px 4px 8px #3a1a1a, inset -4px -4px 8px #5a3a3a;
+            cursor: not-allowed;
+            opacity: 0.85;
         }
 
         .hangman-drawing {
@@ -225,6 +307,14 @@
         <div class="hangman-drawing">
             <canvas id="hangman-canvas" width="200" height="200"></canvas>
         </div>
+        
+        <!-- CONTENEDOR PARA LA PISTA -->
+        <div class="hint-container">
+            <!-- CAMBIO: Texto del botón actualizado -->
+            <button id="hint-btn">OBTENER PISTA</button>
+            <p id="hint-display" class="hidden"></p>
+        </div>
+
         <div class="word-display" id="word-display"></div>
         <div class="keyboard" id="keyboard"></div>
     </div>
@@ -233,9 +323,9 @@
     <div id="manage-words-screen" class="screen hidden">
         <h2>Administrar Palabras</h2>
         <div class="word-form">
-            <input type="text" id="word-input" placeholder="Palabra o frase en inglés (ej. PEAK HOURS)" required>
-            <input type="text" id="definition-input" placeholder="Definición / Pista (ej. The busiest times)" required>
-            <input type="text" id="translation-input" placeholder="Traducción al español (ej. Horas pico)" required>
+            <input type="text" id="word-input" placeholder="Palabra o frase en inglés (ej. RESTAURANT)" required>
+            <input type="text" id="definition-input" placeholder="Definición / Pista (ej. A place where meals are served)" required>
+            <input type="text" id="translation-input" placeholder="Traducción al español (ej. Restaurante)" required>
             <button class="add-word-btn" id="add-word-btn">Añadir Palabra</button>
         </div>
         <h3>Mis Palabras</h3>
@@ -316,6 +406,10 @@
         const keyboard = document.getElementById('keyboard');
         const currentWordNumSpan = document.getElementById('current-word-num');
         const totalWordsNumSpan = document.getElementById('total-words-num');
+        
+        // ELEMENTOS DEL DOM PARA LA PISTA
+        const hintBtn = document.getElementById('hint-btn');
+        const hintDisplay = document.getElementById('hint-display');
 
         function startGame() {
             allWords = getWords();
@@ -349,22 +443,24 @@
             remainingGuesses = 6;
             currentWordNumSpan.textContent = currentWordIndex + 1;
             
+            // RESET DE LA PISTA PARA CADA RONDA NUEVA
+            hintDisplay.textContent = '';
+            hintDisplay.classList.add('hidden');
+            hintBtn.disabled = false;
+            
             updateWordDisplay();
             createKeyboard();
             drawHangman(0);
         }
 
-        // FUNCIÓN MEJORADA: Ahora usa un <span> para un espaciado claro
         function updateWordDisplay() {
             const display = currentWordObject.english.split('').map(letter => {
                 if (letter === ' ') {
-                    // Devuelve un span con una clase específica para el espaciado
                     return '<span class="word-gap"></span>';
                 }
                 return guessedLetters.includes(letter) ? letter : '_';
             }).join(' ');
             
-            // Usamos innerHTML para que el span se renderice correctamente
             wordDisplay.innerHTML = display;
         }
 
@@ -385,9 +481,11 @@
             if (guessedLetters.includes(letter)) return;
             
             guessedLetters.push(letter);
-            document.getElementById(`letter-${letter}`).disabled = true;
+            const btn = document.getElementById(`letter-${letter}`);
+            btn.disabled = true;
 
             if (currentWordObject.english.includes(letter)) {
+                btn.classList.add('correct-letter');
                 updateWordDisplay();
                 
                 const uniqueLetters = [...new Set(currentWordObject.english.replace(/ /g, '').split(''))];
@@ -395,6 +493,7 @@
                     endRound(true);
                 }
             } else {
+                btn.classList.add('incorrect-letter');
                 remainingGuesses--;
                 drawHangman(6 - remainingGuesses);
                 if (remainingGuesses === 0) {
@@ -499,6 +598,18 @@
             resultModal.classList.add('hidden');
             currentWordIndex++;
             setupNewWord();
+        });
+
+        // EVENT LISTENER PARA EL BOTÓN DE PISTA (SIN PENALIZACIÓN)
+        hintBtn.addEventListener('click', () => {
+            // Muestra la pista
+            hintDisplay.textContent = `Pista: ${currentWordObject.definition}`;
+            hintDisplay.classList.remove('hidden');
+            
+            // Deshabilita el botón para esta ronda
+            hintBtn.disabled = true;
+            
+            // PENALIZACIÓN ELIMINADA
         });
 
         }); // Fin de DOMContentLoaded
