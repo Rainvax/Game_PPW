@@ -33,7 +33,7 @@
 
         h1 {
             color: #4CAF50;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         h2 {
@@ -81,14 +81,13 @@
             background-color: #d32f2f;
         }
 
-        /* Estilo para el botón de volver al menú (CAMBIADO A LA DERECHA) */
         .back-menu-btn {
             background-color: #666;
             padding: 8px 15px;
             font-size: 0.9rem;
             position: absolute;
             top: 20px;
-            right: 20px; /* Cambiado de 'left' a 'right' */
+            right: 20px;
         }
         .back-menu-btn:hover {
             background-color: #555;
@@ -105,6 +104,13 @@
             letter-spacing: 0.8rem;
             margin: 20px 0;
             font-weight: bold;
+            font-family: 'Courier New', Courier, monospace; /* Fuente monoespaciada para mejor alineación */
+        }
+
+        /* NUEVO: Estilo para el espaciado entre palabras */
+        .word-gap {
+            display: inline-block;
+            width: 2.5rem; /* Ancho del hueco entre palabras */
         }
 
         .keyboard {
@@ -202,17 +208,17 @@
     <!-- Pantalla de Inicio -->
     <div id="start-screen" class="screen">
         <h1>Juego del Ahorcado</h1>
-        <p>¡Intenta adivinar la palabra letra por letra!</p>
+        <p>¡Intenta adivinar la palabra o frase letra por letra!</p>
         <button class="start-btn" id="start-game-btn">INICIAR JUEGO</button>
         <button id="manage-words-btn">ADMINISTRAR PALABRAS</button>
     </div>
 
     <!-- Pantalla de Juego -->
     <div id="game-screen" class="screen hidden">
-        <!-- Botón para volver al menú (ahora en la derecha) -->
         <button class="back-menu-btn" id="back-to-menu-from-game-btn">VOLVER AL MENÚ</button>
         
-        <h1>Juego del Ahorcado</h1>
+        <h1>Ahorcado</h1>
+        <p style="color: #ccc; font-size: 1rem; margin-top: 0;">Adivina la palabra o frase</p>
         <div class="progress">
             Palabra <span id="current-word-num">1</span> de <span id="total-words-num">20</span>
         </div>
@@ -227,9 +233,9 @@
     <div id="manage-words-screen" class="screen hidden">
         <h2>Administrar Palabras</h2>
         <div class="word-form">
-            <input type="text" id="word-input" placeholder="Palabra en inglés (ej. HOUSE)" required>
-            <input type="text" id="definition-input" placeholder="Definición / Pista (ej. A building for human habitation)" required>
-            <input type="text" id="translation-input" placeholder="Traducción al español (ej. Casa)" required>
+            <input type="text" id="word-input" placeholder="Palabra o frase en inglés (ej. PEAK HOURS)" required>
+            <input type="text" id="definition-input" placeholder="Definición / Pista (ej. The busiest times)" required>
+            <input type="text" id="translation-input" placeholder="Traducción al español (ej. Horas pico)" required>
             <button class="add-word-btn" id="add-word-btn">Añadir Palabra</button>
         </div>
         <h3>Mis Palabras</h3>
@@ -264,7 +270,7 @@
             screenToShow.classList.remove('hidden');
         }
 
-        // --- GESTIÓN DE PALABRAS (localStorage con manejo de errores) ---
+        // --- GESTIÓN DE PALABRAS ---
         function getWords() {
             try {
                 const savedWords = JSON.parse(localStorage.getItem('hangmanWords') || '[]');
@@ -318,6 +324,13 @@
                 showScreen(manageWordsScreen);
                 return;
             }
+            
+            // Barajar el array de palabras para un orden aleatorio
+            for (let i = allWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
+            }
+
             currentWordIndex = 0;
             totalWordsNumSpan.textContent = allWords.length;
             showScreen(gameScreen);
@@ -341,11 +354,18 @@
             drawHangman(0);
         }
 
+        // FUNCIÓN MEJORADA: Ahora usa un <span> para un espaciado claro
         function updateWordDisplay() {
-            const display = currentWordObject.english.split('').map(letter => 
-                guessedLetters.includes(letter) ? letter : '_'
-            ).join(' ');
-            wordDisplay.textContent = display;
+            const display = currentWordObject.english.split('').map(letter => {
+                if (letter === ' ') {
+                    // Devuelve un span con una clase específica para el espaciado
+                    return '<span class="word-gap"></span>';
+                }
+                return guessedLetters.includes(letter) ? letter : '_';
+            }).join(' ');
+            
+            // Usamos innerHTML para que el span se renderice correctamente
+            wordDisplay.innerHTML = display;
         }
 
         function createKeyboard() {
@@ -369,7 +389,9 @@
 
             if (currentWordObject.english.includes(letter)) {
                 updateWordDisplay();
-                if (currentWordObject.english.split('').every(l => guessedLetters.includes(l))) {
+                
+                const uniqueLetters = [...new Set(currentWordObject.english.replace(/ /g, '').split(''))];
+                if (uniqueLetters.every(l => guessedLetters.includes(l))) {
                     endRound(true);
                 }
             } else {
@@ -453,8 +475,6 @@
             showScreen(manageWordsScreen);
         });
         document.getElementById('back-to-menu-btn').addEventListener('click', () => showScreen(startScreen));
-        
-        // Event listener para el botón de volver durante el juego
         document.getElementById('back-to-menu-from-game-btn').addEventListener('click', () => {
             showScreen(startScreen);
         });
