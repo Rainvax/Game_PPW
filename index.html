@@ -150,9 +150,7 @@
         }
 
         .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            text-align: center;
         }
 
         .stat-icon {
@@ -603,6 +601,25 @@
             border-radius: 6px;
         }
 
+        .selected-item-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 9px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .selected-item:hover .selected-item-label {
+            opacity: 1;
+        }
+
         .empty-selection {
             color: rgba(255,255,255,0.6);
             font-size: 12px;
@@ -824,37 +841,6 @@
                 transparent 50px,
                 transparent 100px
             );
-        }
-
-        /* Indicador de tráfico */
-        .peak-indicator {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .peak-indicator.high-traffic {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .peak-indicator.normal-traffic {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-        }
-
-        .peak-indicator.low-traffic {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            color: white;
         }
 
         /* Botón de Estados minimizado */
@@ -1119,6 +1105,37 @@
             top: 50%;
             right: 30%;
         }
+
+        /* Indicador de tráfico */
+        .peak-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .peak-indicator.high-traffic {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .peak-indicator.normal-traffic {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .peak-indicator.low-traffic {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -1313,6 +1330,8 @@
                 this.gameInterval = null;
                 this.customers = [];
                 this.selectedTime = null;
+                this.gameSpeed = 1000; // 1 segundo de tiempo real
+                this.lastUpdate = 0;
                 
                 this.initializeEventListeners();
             }
@@ -1365,7 +1384,7 @@
 
             minutesToTime(minutes) {
                 const hours = Math.floor(minutes / 60);
-                const mins = minutes % 60;
+                const mins = Math.round(minutes % 60);
                 const period = hours >= 12 ? 'PM' : 'AM';
                 const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
                 
@@ -1443,17 +1462,23 @@
 
             startGameTimer() {
                 this.gameInterval = setInterval(() => {
-                    this.currentTime += 1; // Avanzar 1 minuto
+                    const now = Date.now();
+                    const deltaTime = now - this.lastUpdate;
                     
-                    if (this.currentTime >= this.timeToMinutes('3:30 PM')) {
-                        this.endGame();
-                        return;
+                    if (deltaTime >= this.gameSpeed) {
+                        this.currentTime += (deltaTime / 60000); // Convertir milisegundos a minutos
+                        this.lastUpdate = now;
+                        
+                        if (this.currentTime >= this.timeToMinutes('3:30 PM')) {
+                            this.endGame();
+                            return;
+                        }
+                        
+                        this.updateTimeDisplay();
+                        this.manageCustomerFlow();
+                        this.updateGameStatus();
                     }
-                    
-                    this.updateTimeDisplay();
-                    this.manageCustomerFlow();
-                    this.updateGameStatus();
-                }, 1000); // Actualizar cada segundo (1 minuto de juego)
+                }, 50); // Verificar cada 50ms
             }
 
             manageCustomerFlow() {
@@ -1594,7 +1619,7 @@
                     const menuText = selectedItems.map(item => item.name).join(', ');
                     console.log(`Pago confirmado: ${selectedPaymentOption.title} - $${selectedPaymentOption.amount.toLocaleString('es-CO')}`);
                     
-                    confirmPaymentButton.textContent = '✓';
+                    confirmPaymentButton.textContent = '✓ Pagado';
                     confirmPaymentButton.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
                     
                     setTimeout(() => {
@@ -1607,8 +1632,8 @@
                         foodItems.forEach(item => item.classList.remove('selected'));
                         selectedItems = [];
                         this.updateSelectedDisplay(selectedItems, selectedItemsDisplay, confirmButton);
-                        confirmPaymentButton.textContent = 'Pagar';
-                        confirmPaymentButton.style.background = '';
+                        confirmButton.textContent = 'Pagar';
+                        confirmButton.style.background = '';
                         paymentOptions.forEach(option => option.classList.remove('selected'));
                         selectedPaymentOption = null;
                         confirmPaymentButton.disabled = true;
