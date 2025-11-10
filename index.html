@@ -151,10 +151,21 @@
 
         .stat-item {
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .stat-icon {
             font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .stat-value {
@@ -874,6 +885,11 @@
             transform: translateY(0);
         }
 
+        .status-toggle.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
         .status-icon {
             width: 20px;
             height: 20px;
@@ -887,6 +903,10 @@
             font-weight: bold;
         }
 
+        .status-toggle.active .status-icon {
+            background: rgba(255,255,255,0.3);
+        }
+
         /* Tabla de información minimizada */
         .info-table {
             position: absolute;
@@ -897,7 +917,7 @@
             padding: 15px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
-            min-width: 200px;
+            min-width: 220px;
             font-size: 14px;
             z-index: 99;
             transform-origin: top right;
@@ -914,7 +934,7 @@
         }
 
         .info-table h3 {
-            margin: 0 0 12px 0;
+            margin: 0 0 15px 0;
             color: #2c3e50;
             font-size: 16px;
             font-weight: 600;
@@ -927,7 +947,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             padding: 5px 0;
         }
 
@@ -946,6 +966,7 @@
         .info-value {
             font-weight: 600;
             color: #2c3e50;
+            font-size: 14px;
         }
 
         .info-icon {
@@ -990,6 +1011,23 @@
             color: #e74c3c;
             font-weight: 600;
             margin-left: 5px;
+        }
+
+        .seats-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .seats-main {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .seats-detail {
+            font-size: 11px;
+            color: #7f8c8d;
         }
 
         @keyframes professionalWait {
@@ -1168,10 +1206,12 @@
             <div class="game-stats">
                 <div class="stat-item">
                     <span class="stat-icon">👥</span>
+                    <span class="stat-label">Atendidos</span>
                     <span class="stat-value" id="servedCount">0</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-icon">💰</span>
+                    <span class="stat-label">Ingresos</span>
                     <span class="stat-value" id="revenueCount">$0</span>
                 </div>
             </div>
@@ -1192,32 +1232,39 @@
             <!-- Botón de Estados minimizado -->
             <button class="status-toggle" id="statusToggle">
                 <span class="status-icon">📊</span>
+                <span>Estadísticas</span>
             </button>
 
             <!-- Tabla de información minimizada -->
             <div class="info-table" id="infoTable">
-                <h3>Estado</h3>
+                <h3>Estado del Restaurante</h3>
                 <div class="info-row">
                     <div class="info-label">
                         <span class="info-icon people-icon">👥</span>
+                        <span>En fila</span>
                     </div>
-                    <div class="info-value" id="peopleCount">8</div>
+                    <div class="info-value" id="peopleCount">0</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">
                         <span class="info-icon seats-icon">🪑</span>
+                        <span>Asientos</span>
                     </div>
-                    <div class="info-value" id="seatsCount">200</div>
+                    <div class="seats-info">
+                        <div class="seats-main" id="seatsMain">200 libres</div>
+                        <div class="seats-detail" id="seatsDetail">0 ocupados / 200 total</div>
+                    </div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">
                         <span>⚡</span>
+                        <span>Estrés</span>
                     </div>
                     <div style="display: flex; align-items: center;">
                         <div class="stress-bar">
                             <div class="stress-fill" id="stressFill"></div>
                         </div>
-                        <span class="stress-level" id="stressLevel">20%</span>
+                        <span class="stress-level" id="stressLevel">0%</span>
                     </div>
                 </div>
             </div>
@@ -1327,11 +1374,13 @@
                 this.availableSeats = 200;
                 this.servedCustomers = 0;
                 this.totalRevenue = 0;
-                this.gameInterval = null;
                 this.customers = [];
                 this.selectedTime = null;
-                this.gameSpeed = 1000; // 1 segundo de tiempo real
-                this.lastUpdate = 0;
+                this.gameStarted = false;
+                
+                // Variables para controlar el tiempo por compras
+                this.purchaseCount = 0;
+                this.timePerPurchase = 0.5; // 30 segundos = 0.5 minutos
                 
                 this.initializeEventListeners();
             }
@@ -1372,12 +1421,19 @@
                 }, 500);
             }
 
+            // Función mejorada para convertir tiempo a minutos
             timeToMinutes(timeStr) {
-                const [time, period] = timeStr.split(' ');
-                let [hours, minutes] = time.split(':').map(Number);
+                // Asumir que todas las horas son AM excepto las que están después del mediodía
+                const [timePart] = timeStr.split(' ');
+                let [hours, minutes] = timePart.split(':').map(Number);
                 
-                if (period === 'PM' && hours !== 12) hours += 12;
-                if (period === 'AM' && hours === 12) hours = 0;
+                // Convertir a formato 24 horas
+                if (hours < 11) {
+                    // Si es menor a 11, es PM (ej: 1:00 = 13:00)
+                    hours += 12;
+                }
+                // Si es 11 o 12, es AM
+                // Si es mayor a 12, ya es PM (ej: 13:00)
                 
                 return hours * 60 + minutes;
             }
@@ -1392,10 +1448,39 @@
             }
 
             initializeGame() {
+                this.gameStarted = true;
+                this.purchaseCount = 0;
                 this.updateTimeDisplay();
                 this.generateInitialCustomers();
                 this.updateGameStatus();
-                this.startGameTimer();
+                
+                // Configurar el botón de estadísticas
+                this.setupStatsToggle();
+            }
+
+            setupStatsToggle() {
+                const statusToggle = document.getElementById('statusToggle');
+                const infoTable = document.getElementById('infoTable');
+                
+                statusToggle.addEventListener('click', () => {
+                    const isExpanded = infoTable.classList.contains('expanded');
+                    
+                    if (isExpanded) {
+                        infoTable.classList.remove('expanded');
+                        statusToggle.classList.remove('active');
+                    } else {
+                        infoTable.classList.add('expanded');
+                        statusToggle.classList.add('active');
+                    }
+                });
+                
+                // Cerrar al hacer clic fuera
+                document.addEventListener('click', (event) => {
+                    if (!statusToggle.contains(event.target) && !infoTable.contains(event.target)) {
+                        infoTable.classList.remove('expanded');
+                        statusToggle.classList.remove('active');
+                    }
+                });
             }
 
             generateInitialCustomers() {
@@ -1460,46 +1545,23 @@
                 this.customers.push(customerId);
             }
 
-            startGameTimer() {
-                this.gameInterval = setInterval(() => {
-                    const now = Date.now();
-                    const deltaTime = now - this.lastUpdate;
-                    
-                    if (deltaTime >= this.gameSpeed) {
-                        this.currentTime += (deltaTime / 60000); // Convertir milisegundos a minutos
-                        this.lastUpdate = now;
-                        
-                        if (this.currentTime >= this.timeToMinutes('3:30 PM')) {
-                            this.endGame();
-                            return;
-                        }
-                        
-                        this.updateTimeDisplay();
-                        this.manageCustomerFlow();
-                        this.updateGameStatus();
-                    }
-                }, 50); // Verificar cada 50ms
-            }
-
-            manageCustomerFlow() {
-                const queueLine = document.getElementById('queueLine');
-                const currentCustomers = queueLine.querySelectorAll('.customer').length;
-                const targetCustomers = this.getCustomerCountForTime();
+            // Función para avanzar el tiempo por compra
+            advanceTimeByPurchase() {
+                this.purchaseCount++;
+                this.currentTime += this.timePerPurchase; // Añadir 30 segundos (0.5 minutos)
                 
-                // Agregar clientes si es necesario
-                if (currentCustomers < targetCustomers && this.availableSeats > 0) {
-                    const newCustomerId = Math.max(...this.customers, 0) + 1;
-                    this.addCustomerToQueue(newCustomerId);
+                // Actualizar display del tiempo
+                this.updateTimeDisplay();
+                
+                // Verificar si el juego ha terminado
+                if (this.currentTime >= this.timeToMinutes('3:30 PM')) {
+                    this.endGame();
+                    return;
                 }
                 
-                // Remover clientes si hay demasiados
-                if (currentCustomers > targetCustomers) {
-                    const lastCustomer = queueLine.lastElementChild;
-                    if (lastCustomer) {
-                        lastCustomer.remove();
-                        this.customers = this.customers.filter(id => id !== parseInt(lastCustomer.dataset.customerId));
-                    }
-                }
+                // Gestionar el flujo de clientes después del cambio de tiempo
+                this.manageCustomerFlow();
+                this.updateGameStatus();
             }
 
             updateTimeDisplay() {
@@ -1511,12 +1573,15 @@
                 const queueLine = document.getElementById('queueLine');
                 const peopleCount = queueLine.querySelectorAll('.customer').length;
                 
-                // Actualizar contador de personas
+                // Actualizar contador de personas en la tabla de información
                 document.getElementById('peopleCount').textContent = peopleCount;
                 
-                // Actualizar asientos disponibles
-                this.availableSeats = this.totalSeats - this.servedCustomers;
-                document.getElementById('seatsCount').textContent = this.availableSeats;
+                // Actualizar información de asientos
+                const occupiedSeats = this.servedCustomers;
+                const freeSeats = this.totalSeats - occupiedSeats;
+                
+                document.getElementById('seatsMain').textContent = `${freeSeats} libres`;
+                document.getElementById('seatsDetail').textContent = `${occupiedSeats} ocupados / ${this.totalSeats} total`;
                 
                 // Calcular y actualizar estrés
                 const stressLevel = Math.min(100, Math.round((peopleCount / 8) * 100));
@@ -1526,7 +1591,7 @@
                 // Actualizar indicador de tráfico
                 this.updateTrafficIndicator(peopleCount);
                 
-                // Actualizar contador de atendidos e ingresos
+                // Actualizar contador de atendidos e ingresos en el header
                 document.getElementById('servedCount').textContent = this.servedCustomers;
                 document.getElementById('revenueCount').textContent = '$' + this.totalRevenue.toLocaleString('es-CO');
             }
@@ -1628,12 +1693,15 @@
                         // Procesar el pago y avanzar la fila
                         this.processPayment(selectedPaymentOption.amount);
                         
+                        // Avanzar el tiempo por esta compra
+                        this.advanceTimeByPurchase();
+                        
                         // Resetear menú
                         foodItems.forEach(item => item.classList.remove('selected'));
                         selectedItems = [];
                         this.updateSelectedDisplay(selectedItems, selectedItemsDisplay, confirmButton);
-                        confirmButton.textContent = 'Pagar';
-                        confirmButton.style.background = '';
+                        confirmPaymentButton.textContent = 'Pagar';
+                        confirmPaymentButton.style.background = '';
                         paymentOptions.forEach(option => option.classList.remove('selected'));
                         selectedPaymentOption = null;
                         confirmPaymentButton.disabled = true;
@@ -1678,9 +1746,6 @@
                 
                 // Avanzar la fila
                 this.advanceQueue();
-                
-                // Actualizar estado del juego
-                this.updateGameStatus();
             }
 
             advanceQueue() {
@@ -1714,11 +1779,30 @@
                 }, 200);
             }
 
-            endGame() {
-                clearInterval(this.gameInterval);
+            manageCustomerFlow() {
+                const queueLine = document.getElementById('queueLine');
+                const currentCustomers = queueLine.querySelectorAll('.customer').length;
+                const targetCustomers = this.getCustomerCountForTime();
                 
+                // Agregar clientes si es necesario
+                if (currentCustomers < targetCustomers && this.availableSeats > 0) {
+                    const newCustomerId = Math.max(...this.customers, 0) + 1;
+                    this.addCustomerToQueue(newCustomerId);
+                }
+                
+                // Remover clientes si hay demasiados
+                if (currentCustomers > targetCustomers) {
+                    const lastCustomer = queueLine.lastElementChild;
+                    if (lastCustomer) {
+                        lastCustomer.remove();
+                        this.customers = this.customers.filter(id => id !== parseInt(lastCustomer.dataset.customerId));
+                    }
+                }
+            }
+
+            endGame() {
                 // Mostrar resultados finales
-                alert(`¡Juego terminado!\n\nAtendidos: ${this.servedCustomers}\nIngresos: $${this.totalRevenue.toLocaleString('es-CO')}\nAsientos: ${this.availableSeats}`);
+                alert(`¡Juego terminado!\n\nAtendidos: ${this.servedCustomers}\nIngresos: $${this.totalRevenue.toLocaleString('es-CO')}\nCompras: ${this.purchaseCount}\nAsientos libres: ${this.totalSeats - this.servedCustomers}`);
                 
                 // Opción de reiniciar
                 if (confirm('¿Jugar de nuevo?')) {
