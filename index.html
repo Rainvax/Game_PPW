@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fila de Espera - Restaurante</title>
+    <title>Sistema de Restaurante</title>
     <style>
         * {
             margin: 0;
@@ -20,14 +20,148 @@
             flex-direction: column;
         }
 
+        /* Pantalla de Inicio */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: all 0.5s ease;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .start-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+
+        .start-title {
+            color: #2c3e50;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .time-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .time-option {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .time-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            background: linear-gradient(135deg, #2980b9, #21618c);
+        }
+
+        .time-option.selected {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .start-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+            background: linear-gradient(135deg, #c0392b, #a93226);
+        }
+
+        .start-button:disabled {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Pantalla de Juego */
+        .game-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
         header {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             color: white;
-            padding: 20px;
-            text-align: center;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .time-display {
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .scene-container {
@@ -77,6 +211,35 @@
         .customer:nth-child(6) { animation-delay: 1.5s; z-index: 3; }
         .customer:nth-child(7) { animation-delay: 1.8s; z-index: 2; }
         .customer:nth-child(8) { animation-delay: 2.1s; z-index: 1; }
+
+        /* Animaciones de movimiento de la fila */
+        .customer.exiting {
+            animation: customerExit 1s ease-out forwards;
+        }
+
+        .customer.moving-forward {
+            animation: moveForward 0.8s ease-out forwards;
+        }
+
+        @keyframes customerExit {
+            0% {
+                transform: translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(200px) rotate(15deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes moveForward {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-25px);
+            }
+        }
 
         /* Cabeza más pequeña */
         .customer-head {
@@ -296,20 +459,23 @@
         /* Barra del restaurante */
         .counter {
             position: absolute;
-            right: 50px;
-            top: 50%;
+            right: 20px;
+            top: 15%;
             transform: translateY(-50%);
-            width: 250px;
-            height: 120px;
+            width: 320px;
+            height: 200px;
             background: linear-gradient(135deg, #2c3e50, #34495e);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             position: relative;
             border: 3px solid rgba(255,255,255,0.1);
             overflow: hidden;
+            padding: 15px;
+            z-index: 50;
         }
 
         .counter::before {
@@ -334,10 +500,12 @@
             animation: shine 3s infinite;
         }
 
-        .food-display {
+        /* Área de selección de comida */
+        .food-selection {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             z-index: 1;
+            margin-top: 20px;
         }
 
         .food-item {
@@ -349,13 +517,22 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             overflow: hidden;
             position: relative;
+            cursor: pointer;
+            border: 3px solid transparent;
         }
 
         .food-item:hover {
             transform: scale(1.1) rotate(5deg);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .food-item.selected {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.2);
+            transform: scale(1.05);
         }
 
         .food-item img {
@@ -391,26 +568,235 @@
             opacity: 1;
         }
 
-        /* Etiquetas de los alimentos */
-        .food-label {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 10;
+        /* Área de visualización del menú seleccionado */
+        .selected-menu {
+            width: 100%;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            position: relative;
+            border: 2px solid rgba(255,255,255,0.2);
         }
 
-        .food-item:hover .food-label {
+        .selected-item {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        .selected-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .empty-selection {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        /* Botón de confirmación */
+        .confirm-button {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            margin-top: 10px;
+        }
+
+        .confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+            background: linear-gradient(135deg, #229954, #1e8449);
+        }
+
+        .confirm-button:active {
+            transform: translateY(0);
+        }
+
+        .confirm-button:disabled {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Modal de pago */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .payment-modal.active {
             opacity: 1;
+            visibility: visible;
+        }
+
+        .payment-content {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .payment-modal.active .payment-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .payment-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .payment-option {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-option:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .payment-option.selected {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: #27ae60;
+        }
+
+        .payment-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .payment-option:hover::before {
+            left: 100%;
+        }
+
+        .payment-option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .payment-option-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .payment-option-price {
+            color: #f39c12;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .payment-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .payment-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-cancel {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .payment-cancel:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .payment-confirm {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .payment-confirm:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .payment-confirm:disabled {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         /* Suelo del restaurante */
@@ -438,6 +824,37 @@
                 transparent 50px,
                 transparent 100px
             );
+        }
+
+        /* Indicador de tráfico */
+        .peak-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .peak-indicator.high-traffic {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .peak-indicator.normal-traffic {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .peak-indicator.low-traffic {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
         }
 
         /* Botón de Estados minimizado */
@@ -646,6 +1063,28 @@
             }
         }
 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .background-decoration {
             position: absolute;
             width: 100%;
@@ -683,337 +1122,589 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>Fila de Espera - Restaurante</h1>
-    </header>
-
-    <div class="scene-container">
-        <div class="background-decoration">
-            <div class="bg-circle"></div>
-            <div class="bg-circle"></div>
-            <div class="bg-circle"></div>
+    <!-- Pantalla de Inicio -->
+    <div class="start-screen" id="startScreen">
+        <div class="start-content">
+            <h1 class="start-title">🍽️</h1>
+            
+            <div class="time-options">
+                <button class="time-option" data-time="11:00">11:00</button>
+                <button class="time-option" data-time="11:30">11:30</button>
+                <button class="time-option" data-time="12:00">12:00</button>
+                <button class="time-option" data-time="12:30">12:30</button>
+                <button class="time-option" data-time="1:00">1:00</button>
+                <button class="time-option" data-time="1:30">1:30</button>
+                <button class="time-option" data-time="2:00">2:00</button>
+                <button class="time-option" data-time="2:30">2:30</button>
+                <button class="time-option" data-time="3:00">3:00</button>
+                <button class="time-option" data-time="3:29">3:29</button>
+            </div>
+            
+            <button class="start-button" id="startButton" disabled>Comenzar</button>
         </div>
+    </div>
 
-        <!-- Botón de Estados minimizado -->
-        <button class="status-toggle" id="statusToggle">
-            <span class="status-icon">📊</span>
-            <span>Estados</span>
-        </button>
-
-        <!-- Tabla de información minimizada -->
-        <div class="info-table" id="infoTable">
-            <h3>Estado del Restaurante</h3>
-            <div class="info-row">
-                <div class="info-label">
-                    <span class="info-icon people-icon">👥</span>
-                    <span>Personas:</span>
+    <!-- Pantalla de Juego -->
+    <div class="game-screen" id="gameScreen">
+        <header>
+            <div class="time-display" id="timeDisplay">11:00</div>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">👥</span>
+                    <span class="stat-value" id="servedCount">0</span>
                 </div>
-                <div class="info-value">8</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">
-                    <span class="info-icon seats-icon">🪑</span>
-                    <span>Asientos libres:</span>
-                </div>
-                <div class="info-value">12</div>
-            </div>
-            <div class="info-row">
-                <div class="info-label">
-                    <span>⚡ Estrés:</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <div class="stress-bar">
-                        <div class="stress-fill"></div>
-                    </div>
-                    <span class="stress-level">65%</span>
+                <div class="stat-item">
+                    <span class="stat-icon">💰</span>
+                    <span class="stat-value" id="revenueCount">$0</span>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="restaurant-area">
-            <div class="floor"></div>
-            <div class="floor-lines"></div>
+        <div class="scene-container">
+            <div class="background-decoration">
+                <div class="bg-circle"></div>
+                <div class="bg-circle"></div>
+                <div class="bg-circle"></div>
+            </div>
 
-            <div class="queue-line">
-                <div class="customer customer-1">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
+            <!-- Indicador de tráfico -->
+            <div class="peak-indicator" id="peakIndicator">
+                <span id="trafficIcon">🟢</span>
+            </div>
+
+            <!-- Botón de Estados minimizado -->
+            <button class="status-toggle" id="statusToggle">
+                <span class="status-icon">📊</span>
+            </button>
+
+            <!-- Tabla de información minimizada -->
+            <div class="info-table" id="infoTable">
+                <h3>Estado</h3>
+                <div class="info-row">
+                    <div class="info-label">
+                        <span class="info-icon people-icon">👥</span>
                     </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
+                    <div class="info-value" id="peopleCount">8</div>
                 </div>
-
-                <div class="customer customer-2">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <span class="info-icon seats-icon">🪑</span>
                     </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
+                    <div class="info-value" id="seatsCount">200</div>
                 </div>
-
-                <div class="customer customer-3">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
+                <div class="info-row">
+                    <div class="info-label">
+                        <span>⚡</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="stress-bar">
+                            <div class="stress-fill" id="stressFill"></div>
                         </div>
+                        <span class="stress-level" id="stressLevel">20%</span>
                     </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
-                </div>
-
-                <div class="customer customer-4">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
-                </div>
-
-                <div class="customer customer-5">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
-                </div>
-
-                <div class="customer customer-6">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
-                </div>
-
-                <div class="customer customer-7">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
-                </div>
-
-                <div class="customer customer-8">
-                    <div class="customer-head">
-                        <div class="customer-face">
-                            <div class="customer-eyes">
-                                <div class="eye"></div>
-                                <div class="eye"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="customer-neck"></div>
-                    <div class="customer-torso"></div>
-                    <div class="left-arm">
-                        <div class="left-fist"></div>
-                    </div>
-                    <div class="right-arm">
-                        <div class="right-fist"></div>
-                    </div>
-                    <div class="left-leg">
-                        <div class="left-foot"></div>
-                    </div>
-                    <div class="right-leg">
-                        <div class="right-foot"></div>
-                    </div>
-                    <div class="ground-shadow"></div>
                 </div>
             </div>
 
-            <div class="counter">
-                <div class="counter-shine"></div>
-                <div class="food-display">
-                    <!-- SOPA -->
-                    <div class="food-item">
-                        <img src="sopa.png" 
-                             alt="Sopa" 
-                             title="Sopa">
-                        <div class="food-label">Sopa</div>
+            <div class="restaurant-area">
+                <div class="floor"></div>
+                <div class="floor-lines"></div>
+
+                <div class="queue-line" id="queueLine">
+                    <!-- Los clientes se generarán dinámicamente -->
+                </div>
+
+                <div class="counter">
+                    <div class="counter-shine"></div>
+                    
+                    <!-- Área de visualización del menú seleccionado -->
+                    <div class="selected-menu">
+                        <div id="selectedItemsDisplay">
+                            <span class="empty-selection">Selecciona platos</span>
+                        </div>
                     </div>
 
-                    <!-- ARROZ CON ENSALADA -->
-                    <div class="food-item">
-                        <img src="arroz.png" 
-                             alt="Arroz con ensalada" 
-                             title="Arroz">
-                        <div class="food-label">Arroz</div>
+                    <!-- Área de selección de comida -->
+                    <div class="food-selection">
+                        <!-- SOPA -->
+                        <div class="food-item" data-food="sopa" data-name="Sopa">
+                            <img src="sopa.png" 
+                                 alt="Sopa" 
+                                 title="Sopa">
+                        </div>
+
+                        <!-- ENSALADA -->
+                        <div class="food-item" data-food="ensalada" data-name="Ensalada">
+                            <img src="ensalada.png" 
+                                 alt="Ensalada" 
+                                 title="Ensalada">
+                        </div>
+
+                        <!-- ARROZ -->
+                        <div class="food-item" data-food="arroz" data-name="Arroz">
+                            <img src="arroz.png" 
+                                 alt="Arroz" 
+                                 title="Arroz">
+                        </div>
+
+                        <!-- CARNE -->
+                        <div class="food-item" data-food="carne" data-name="Carne">
+                            <img src="cerdo.png" 
+                                 alt="Carne" 
+                                 title="Carne">
+                        </div>
+
+                        <!-- PAPA -->
+                        <div class="food-item" data-food="papa" data-name="Papá">
+                            <img src="papa.png" 
+                                 alt="Papa cocida" 
+                                 title="Papa">
+                        </div>
                     </div>
 
-                    <!-- CARNE -->
-                    <div class="food-item">
-                        <img src="cerdo.png" 
-                             alt="Carne" 
-                             title="Carne">
-                        <div class="food-label">Carne</div>
-                    </div>
-
-                    <!-- PAPA COCIDA -->
-                    <div class="food-item">
-                        <img src="papa.png" 
-                             alt="Papa cocida" 
-                             title="Papa">
-                        <div class="food-label">Papa</div>
-                    </div>
+                    <!-- Botón de confirmación -->
+                    <button class="confirm-button" id="confirmButton" disabled>
+                        Confirmar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Funcionalidad del botón de Estados
-        const statusToggle = document.getElementById('statusToggle');
-        const infoTable = document.getElementById('infoTable');
-        let isExpanded = false;
-
-        statusToggle.addEventListener('click', function() {
-            isExpanded = !isExpanded;
+    <!-- Modal de pago -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-content">
+            <div class="payment-header">
+                <h2 class="payment-title">Tarifa</h2>
+            </div>
             
-            if (isExpanded) {
-                infoTable.classList.add('expanded');
-                statusToggle.innerHTML = '<span class="status-icon">📊</span><span>Estados</span>';
-            } else {
-                infoTable.classList.remove('expanded');
-                statusToggle.innerHTML = '<span class="status-icon">📊</span><span>Estados</span>';
-            }
-        });
+            <div class="payment-options">
+                <div class="payment-option" data-price="normal" data-amount="13000">
+                    <div class="payment-option-header">
+                        <span class="payment-option-title">Normal</span>
+                        <span class="payment-option-price">$13.000</span>
+                    </div>
+                </div>
+                
+                <div class="payment-option" data-price="subsidized" data-amount="3000">
+                    <div class="payment-option-header">
+                        <span class="payment-option-title">Subsidiada</span>
+                        <span class="payment-option-price">$3.000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="payment-actions">
+                <button class="payment-button payment-cancel" id="cancelPayment">Cancelar</button>
+                <button class="payment-button payment-confirm" id="confirmPayment" disabled>Pagar</button>
+            </div>
+        </div>
+    </div>
 
-        // Cerrar la tabla al hacer clic fuera de ella
-        document.addEventListener('click', function(event) {
-            if (isExpanded && !infoTable.contains(event.target) && !statusToggle.contains(event.target)) {
-                isExpanded = false;
-                infoTable.classList.remove('expanded');
+    <script>
+        // Sistema de Juego
+        class RestaurantGame {
+            constructor() {
+                this.startTime = null;
+                this.currentTime = null;
+                this.totalSeats = 200;
+                this.availableSeats = 200;
+                this.servedCustomers = 0;
+                this.totalRevenue = 0;
+                this.gameInterval = null;
+                this.customers = [];
+                this.selectedTime = null;
+                
+                this.initializeEventListeners();
             }
-        });
 
-        // Precargar imágenes para mejor rendimiento
-        const images = document.querySelectorAll('.food-item img');
-        images.forEach(img => {
-            const newImg = new Image();
-            newImg.src = img.src;
+            initializeEventListeners() {
+                // Pantalla de inicio
+                const timeOptions = document.querySelectorAll('.time-option');
+                const startButton = document.getElementById('startButton');
+                
+                timeOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        timeOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        this.selectedTime = option.dataset.time;
+                        startButton.disabled = false;
+                    });
+                });
+                
+                startButton.addEventListener('click', () => {
+                    this.startGame();
+                });
+                
+                // Lógica del juego
+                this.setupGameLogic();
+            }
+
+            startGame() {
+                this.startTime = this.selectedTime;
+                this.currentTime = this.timeToMinutes(this.startTime);
+                
+                // Ocultar pantalla de inicio
+                document.getElementById('startScreen').classList.add('hidden');
+                
+                // Mostrar pantalla de juego
+                setTimeout(() => {
+                    document.getElementById('gameScreen').classList.add('active');
+                    this.initializeGame();
+                }, 500);
+            }
+
+            timeToMinutes(timeStr) {
+                const [time, period] = timeStr.split(' ');
+                let [hours, minutes] = time.split(':').map(Number);
+                
+                if (period === 'PM' && hours !== 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0;
+                
+                return hours * 60 + minutes;
+            }
+
+            minutesToTime(minutes) {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                const period = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                
+                return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+            }
+
+            initializeGame() {
+                this.updateTimeDisplay();
+                this.generateInitialCustomers();
+                this.updateGameStatus();
+                this.startGameTimer();
+            }
+
+            generateInitialCustomers() {
+                const queueLine = document.getElementById('queueLine');
+                queueLine.innerHTML = '';
+                
+                const customerCount = this.getCustomerCountForTime();
+                
+                for (let i = 1; i <= customerCount; i++) {
+                    this.addCustomerToQueue(i);
+                }
+            }
+
+            getCustomerCountForTime() {
+                const hour = Math.floor(this.currentTime / 60);
+                
+                // Hora pico: 12:00 PM - 2:00 PM (12:00 - 14:00)
+                if (hour >= 12 && hour < 14) {
+                    return 8; // Máximo de clientes
+                } else if (hour >= 11 && hour < 12) {
+                    return 6; // Pre-pico
+                } else if (hour >= 14 && hour < 16) {
+                    return 4; // Post-pico
+                } else {
+                    return 2; // Bajo tráfico
+                }
+            }
+
+            addCustomerToQueue(customerId) {
+                const queueLine = document.getElementById('queueLine');
+                const customer = document.createElement('div');
+                customer.className = `customer customer-${customerId}`;
+                customer.dataset.customerId = customerId;
+                
+                customer.innerHTML = `
+                    <div class="customer-head">
+                        <div class="customer-face">
+                            <div class="customer-eyes">
+                                <div class="eye"></div>
+                                <div class="eye"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="customer-neck"></div>
+                    <div class="customer-torso"></div>
+                    <div class="left-arm">
+                        <div class="left-fist"></div>
+                    </div>
+                    <div class="right-arm">
+                        <div class="right-fist"></div>
+                    </div>
+                    <div class="left-leg">
+                        <div class="left-foot"></div>
+                    </div>
+                    <div class="right-leg">
+                        <div class="right-foot"></div>
+                    </div>
+                    <div class="ground-shadow"></div>
+                `;
+                
+                queueLine.appendChild(customer);
+                this.customers.push(customerId);
+            }
+
+            startGameTimer() {
+                this.gameInterval = setInterval(() => {
+                    this.currentTime += 1; // Avanzar 1 minuto
+                    
+                    if (this.currentTime >= this.timeToMinutes('3:30 PM')) {
+                        this.endGame();
+                        return;
+                    }
+                    
+                    this.updateTimeDisplay();
+                    this.manageCustomerFlow();
+                    this.updateGameStatus();
+                }, 1000); // Actualizar cada segundo (1 minuto de juego)
+            }
+
+            manageCustomerFlow() {
+                const queueLine = document.getElementById('queueLine');
+                const currentCustomers = queueLine.querySelectorAll('.customer').length;
+                const targetCustomers = this.getCustomerCountForTime();
+                
+                // Agregar clientes si es necesario
+                if (currentCustomers < targetCustomers && this.availableSeats > 0) {
+                    const newCustomerId = Math.max(...this.customers, 0) + 1;
+                    this.addCustomerToQueue(newCustomerId);
+                }
+                
+                // Remover clientes si hay demasiados
+                if (currentCustomers > targetCustomers) {
+                    const lastCustomer = queueLine.lastElementChild;
+                    if (lastCustomer) {
+                        lastCustomer.remove();
+                        this.customers = this.customers.filter(id => id !== parseInt(lastCustomer.dataset.customerId));
+                    }
+                }
+            }
+
+            updateTimeDisplay() {
+                const timeDisplay = document.getElementById('timeDisplay');
+                timeDisplay.textContent = this.minutesToTime(this.currentTime);
+            }
+
+            updateGameStatus() {
+                const queueLine = document.getElementById('queueLine');
+                const peopleCount = queueLine.querySelectorAll('.customer').length;
+                
+                // Actualizar contador de personas
+                document.getElementById('peopleCount').textContent = peopleCount;
+                
+                // Actualizar asientos disponibles
+                this.availableSeats = this.totalSeats - this.servedCustomers;
+                document.getElementById('seatsCount').textContent = this.availableSeats;
+                
+                // Calcular y actualizar estrés
+                const stressLevel = Math.min(100, Math.round((peopleCount / 8) * 100));
+                document.getElementById('stressFill').style.width = stressLevel + '%';
+                document.getElementById('stressLevel').textContent = stressLevel + '%';
+                
+                // Actualizar indicador de tráfico
+                this.updateTrafficIndicator(peopleCount);
+                
+                // Actualizar contador de atendidos e ingresos
+                document.getElementById('servedCount').textContent = this.servedCustomers;
+                document.getElementById('revenueCount').textContent = '$' + this.totalRevenue.toLocaleString('es-CO');
+            }
+
+            updateTrafficIndicator(peopleCount) {
+                const indicator = document.getElementById('peakIndicator');
+                const icon = document.getElementById('trafficIcon');
+                
+                indicator.className = 'peak-indicator';
+                
+                if (peopleCount >= 6) {
+                    indicator.classList.add('high-traffic');
+                    icon.textContent = '🔴';
+                } else if (peopleCount >= 4) {
+                    indicator.classList.add('normal-traffic');
+                    icon.textContent = '🟡';
+                } else {
+                    indicator.classList.add('low-traffic');
+                    icon.textContent = '🟢';
+                }
+            }
+
+            setupGameLogic() {
+                // Lógica de selección de comida
+                const foodItems = document.querySelectorAll('.food-item');
+                const selectedItemsDisplay = document.getElementById('selectedItemsDisplay');
+                const confirmButton = document.getElementById('confirmButton');
+                let selectedItems = [];
+
+                foodItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const foodType = item.dataset.food;
+                        const foodName = item.dataset.name;
+                        const foodImage = item.querySelector('img').src;
+                        
+                        if (item.classList.contains('selected')) {
+                            item.classList.remove('selected');
+                            selectedItems = selectedItems.filter(item => item.type !== foodType);
+                        } else {
+                            item.classList.add('selected');
+                            selectedItems.push({
+                                type: foodType,
+                                name: foodName,
+                                image: foodImage
+                            });
+                        }
+                        
+                        this.updateSelectedDisplay(selectedItems, selectedItemsDisplay, confirmButton);
+                    });
+                });
+
+                // Modal de pago
+                const paymentModal = document.getElementById('paymentModal');
+                const paymentOptions = document.querySelectorAll('.payment-option');
+                const confirmPaymentButton = document.getElementById('confirmPayment');
+                const cancelPaymentButton = document.getElementById('cancelPayment');
+                let selectedPaymentOption = null;
+
+                confirmButton.addEventListener('click', () => {
+                    if (selectedItems.length === 0) return;
+                    
+                    const menuText = selectedItems.map(item => item.name).join(', ');
+                    console.log('Menú confirmado:', menuText);
+                    
+                    paymentModal.classList.add('active');
+                    
+                    paymentOptions.forEach(option => option.classList.remove('selected'));
+                    selectedPaymentOption = null;
+                    confirmPaymentButton.disabled = true;
+                });
+
+                paymentOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                        
+                        option.classList.add('selected');
+                        selectedPaymentOption = {
+                            type: option.dataset.price,
+                            amount: parseInt(option.dataset.amount),
+                            title: option.querySelector('.payment-option-title').textContent
+                        };
+                        
+                        confirmPaymentButton.disabled = false;
+                    });
+                });
+
+                confirmPaymentButton.addEventListener('click', () => {
+                    if (!selectedPaymentOption) return;
+                    
+                    const menuText = selectedItems.map(item => item.name).join(', ');
+                    console.log(`Pago confirmado: ${selectedPaymentOption.title} - $${selectedPaymentOption.amount.toLocaleString('es-CO')}`);
+                    
+                    confirmPaymentButton.textContent = '✓';
+                    confirmPaymentButton.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                    
+                    setTimeout(() => {
+                        paymentModal.classList.remove('active');
+                        
+                        // Procesar el pago y avanzar la fila
+                        this.processPayment(selectedPaymentOption.amount);
+                        
+                        // Resetear menú
+                        foodItems.forEach(item => item.classList.remove('selected'));
+                        selectedItems = [];
+                        this.updateSelectedDisplay(selectedItems, selectedItemsDisplay, confirmButton);
+                        confirmPaymentButton.textContent = 'Pagar';
+                        confirmPaymentButton.style.background = '';
+                        paymentOptions.forEach(option => option.classList.remove('selected'));
+                        selectedPaymentOption = null;
+                        confirmPaymentButton.disabled = true;
+                    }, 1500);
+                });
+
+                cancelPaymentButton.addEventListener('click', () => {
+                    paymentModal.classList.remove('active');
+                    paymentOptions.forEach(option => option.classList.remove('selected'));
+                    selectedPaymentOption = null;
+                    confirmPaymentButton.disabled = true;
+                });
+
+                paymentModal.addEventListener('click', (event) => {
+                    if (event.target === paymentModal) {
+                        paymentModal.classList.remove('active');
+                        paymentOptions.forEach(option => option.classList.remove('selected'));
+                        selectedPaymentOption = null;
+                        confirmPaymentButton.disabled = true;
+                    }
+                });
+            }
+
+            updateSelectedDisplay(selectedItems, displayElement, confirmButton) {
+                if (selectedItems.length === 0) {
+                    displayElement.innerHTML = '<span class="empty-selection">Selecciona platos</span>';
+                    confirmButton.disabled = true;
+                } else {
+                    displayElement.innerHTML = selectedItems.map(item => `
+                        <div class="selected-item">
+                            <img src="${item.image}" alt="${item.name}">
+                        </div>
+                    `).join('');
+                    confirmButton.disabled = false;
+                }
+            }
+
+            processPayment(amount) {
+                // Actualizar estadísticas
+                this.servedCustomers++;
+                this.totalRevenue += amount;
+                
+                // Avanzar la fila
+                this.advanceQueue();
+                
+                // Actualizar estado del juego
+                this.updateGameStatus();
+            }
+
+            advanceQueue() {
+                const queueLine = document.getElementById('queueLine');
+                const customers = queueLine.querySelectorAll('.customer');
+                
+                if (customers.length === 0) return;
+                
+                // El primer cliente sale
+                const firstCustomer = customers[0];
+                firstCustomer.classList.add('exiting');
+                
+                // Los demás clientes se mueven hacia adelante
+                setTimeout(() => {
+                    customers.forEach((customer, index) => {
+                        if (index > 0) {
+                            customer.classList.add('moving-forward');
+                            
+                            // Actualizar la clase para mantener los colores correctos
+                            const newClass = `customer-${index}`;
+                            customer.className = customer.className.replace(/customer-\d+/, newClass);
+                            customer.classList.add('moving-forward');
+                        }
+                    });
+                    
+                    // Remover el primer cliente después de la animación
+                    setTimeout(() => {
+                        firstCustomer.remove();
+                        this.updateGameStatus();
+                    }, 800);
+                }, 200);
+            }
+
+            endGame() {
+                clearInterval(this.gameInterval);
+                
+                // Mostrar resultados finales
+                alert(`¡Juego terminado!\n\nAtendidos: ${this.servedCustomers}\nIngresos: $${this.totalRevenue.toLocaleString('es-CO')}\nAsientos: ${this.availableSeats}`);
+                
+                // Opción de reiniciar
+                if (confirm('¿Jugar de nuevo?')) {
+                    location.reload();
+                }
+            }
+        }
+
+        // Inicializar el juego cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new RestaurantGame();
         });
     </script>
 </body>
