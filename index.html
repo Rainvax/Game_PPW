@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Restaurante</title>
+    <title>Sistema de Restaurante - Simulación Avanzada</title>
     <style>
         * {
             margin: 0;
@@ -55,7 +55,14 @@
             color: #2c3e50;
             font-size: 32px;
             font-weight: 700;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        .start-description {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .time-options {
@@ -907,7 +914,7 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* Tabla de información minimizada */
+        /* Tabla de información unificada */
         .info-table {
             position: absolute;
             top: 70px;
@@ -917,7 +924,7 @@
             padding: 15px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
-            min-width: 220px;
+            min-width: 280px;
             font-size: 14px;
             z-index: 99;
             transform-origin: top right;
@@ -1000,7 +1007,6 @@
 
         .stress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #27ae60, #f39c12, #e74c3c);
             border-radius: 4px;
             width: 65%;
             animation: stressPulse 3s infinite ease-in-out;
@@ -1008,10 +1014,14 @@
 
         .stress-level {
             font-size: 12px;
-            color: #e74c3c;
             font-weight: 600;
             margin-left: 5px;
         }
+
+        .stress-low { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+        .stress-medium { background: linear-gradient(90deg, #f39c12, #f1c40f); }
+        .stress-high { background: linear-gradient(90deg, #e67e22, #d35400); }
+        .stress-critical { background: linear-gradient(90deg, #e74c3c, #c0392b); }
 
         .seats-info {
             display: flex;
@@ -1028,6 +1038,51 @@
         .seats-detail {
             font-size: 11px;
             color: #7f8c8d;
+        }
+
+        .metrics-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .metrics-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Indicador de tráfico */
+        .peak-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .peak-indicator.high-traffic {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .peak-indicator.normal-traffic {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .peak-indicator.low-traffic {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
         }
 
         @keyframes professionalWait {
@@ -1143,44 +1198,20 @@
             top: 50%;
             right: 30%;
         }
-
-        /* Indicador de tráfico */
-        .peak-indicator {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .peak-indicator.high-traffic {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .peak-indicator.normal-traffic {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-        }
-
-        .peak-indicator.low-traffic {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            color: white;
-        }
     </style>
 </head>
 <body>
     <!-- Pantalla de Inicio -->
     <div class="start-screen" id="startScreen">
         <div class="start-content">
-            <h1 class="start-title">🍽️</h1>
+            <h1 class="start-title">🍽️ Sistema de Restaurante</h1>
+            <p class="start-description">
+                Simulación avanzada con modelo matemático de flujo y estrés.
+                <br>
+                El tiempo avanza según las compras realizadas.
+                <br>
+                Las condiciones iniciales se ajustan al horario seleccionado.
+            </p>
             
             <div class="time-options">
                 <button class="time-option" data-time="11:00">11:00</button>
@@ -1202,12 +1233,22 @@
     <!-- Pantalla de Juego -->
     <div class="game-screen" id="gameScreen">
         <header>
-            <div class="time-display" id="timeDisplay">11:00</div>
+            <div class="time-display" id="timeDisplay">11:00 AM</div>
             <div class="game-stats">
                 <div class="stat-item">
                     <span class="stat-icon">👥</span>
                     <span class="stat-label">Atendidos</span>
                     <span class="stat-value" id="servedCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⏱️</span>
+                    <span class="stat-label">Espera</span>
+                    <span class="stat-value" id="waitTime">15 min</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🪑</span>
+                    <span class="stat-label">Ocupados</span>
+                    <span class="stat-value" id="occupiedSeats">0</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-icon">💰</span>
@@ -1226,45 +1267,82 @@
 
             <!-- Indicador de tráfico -->
             <div class="peak-indicator" id="peakIndicator">
-                <span id="trafficIcon">🟢</span>
+                <span id="trafficIcon">🟡</span>
+                <span id="trafficText">Presión Media</span>
             </div>
 
-            <!-- Botón de Estados minimizado -->
+            <!-- Botón de Estados unificado -->
             <button class="status-toggle" id="statusToggle">
                 <span class="status-icon">📊</span>
                 <span>Estadísticas</span>
             </button>
 
-            <!-- Tabla de información minimizada -->
+            <!-- Tabla de información unificada -->
             <div class="info-table" id="infoTable">
                 <h3>Estado del Restaurante</h3>
+                
                 <div class="info-row">
                     <div class="info-label">
                         <span class="info-icon people-icon">👥</span>
                         <span>En fila</span>
                     </div>
-                    <div class="info-value" id="peopleCount">0</div>
+                    <div class="info-value" id="peopleCount">60</div>
                 </div>
+                
                 <div class="info-row">
                     <div class="info-label">
                         <span class="info-icon seats-icon">🪑</span>
                         <span>Asientos</span>
                     </div>
                     <div class="seats-info">
-                        <div class="seats-main" id="seatsMain">200 libres</div>
-                        <div class="seats-detail" id="seatsDetail">0 ocupados / 200 total</div>
+                        <div class="seats-main" id="seatsMain">210 libres</div>
+                        <div class="seats-detail" id="seatsDetail">0 ocupados / 210 total</div>
                     </div>
                 </div>
+                
                 <div class="info-row">
                     <div class="info-label">
                         <span>⚡</span>
-                        <span>Estrés</span>
+                        <span>Estrés Cliente</span>
                     </div>
                     <div style="display: flex; align-items: center;">
                         <div class="stress-bar">
-                            <div class="stress-fill" id="stressFill"></div>
+                            <div class="stress-fill stress-low" id="customerStressBar"></div>
                         </div>
-                        <span class="stress-level" id="stressLevel">0%</span>
+                        <span class="stress-level" id="customerStressLevel">25%</span>
+                    </div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">
+                        <span>👨‍🍳</span>
+                        <span>Estrés Trabajador</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="stress-bar">
+                            <div class="stress-fill stress-low" id="workerStressBar"></div>
+                        </div>
+                        <span class="stress-level" id="workerStressLevel">25%</span>
+                    </div>
+                </div>
+                
+                <div class="metrics-section">
+                    <div class="metrics-title">Métricas del Sistema</div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">
+                            <span>📊</span>
+                            <span>Tasa Llegada</span>
+                        </div>
+                        <div class="info-value" id="arrivalRate">3.5/min</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">
+                            <span>⚙️</span>
+                            <span>Velocidad Sistema</span>
+                        </div>
+                        <div class="info-value" id="systemSpeed">4.0/min</div>
                     </div>
                 </div>
             </div>
@@ -1365,22 +1443,35 @@
     </div>
 
     <script>
-        // Sistema de Juego
+        // Sistema de Restaurante con Modelo Matemático Corregido
         class RestaurantGame {
             constructor() {
+                // Constantes configurables del modelo matemático
+                this.T_OPEN = 0; // 11:00 AM en minutos desde el inicio
+                this.T_CLOSE = 280; // 3:40 PM en minutos desde el inicio
+                this.INITIAL_QUEUE = 60; // Personas esperando al abrir
+                this.V_SYS = 4.0; // Velocidad de Sistema: Personas procesadas por minuto
+                this.T_EAT = 45; // Tiempo de Comida: Minutos que un cliente ocupa un asiento
+                this.CAPACITY_REAL = 210; // Asientos Efectivos
+                
+                // Variables de estado del juego
                 this.startTime = null;
-                this.currentTime = null;
-                this.totalSeats = 200;
-                this.availableSeats = 200;
+                this.currentTime = 0; // Minutos desde las 11:00 AM
+                this.queueLength = this.INITIAL_QUEUE; // Personas en fila F(t)
                 this.servedCustomers = 0;
                 this.totalRevenue = 0;
-                this.customers = [];
+                this.occupiedSeats = 0;
+                this.customerStress = 0;
+                this.workerStress = 0;
                 this.selectedTime = null;
                 this.gameStarted = false;
                 
-                // Variables para controlar el tiempo por compras
-                this.purchaseCount = 0;
-                this.timePerPurchase = 0.5; // 30 segundos = 0.5 minutos
+                // Registro histórico para cálculos
+                this.entriesLog = {}; // Objeto para registrar entradas por minuto
+                this.diningRoomLog = {}; // Objeto para registrar salidas del comedor
+                
+                // Variables de UI
+                this.maxCustomersInUI = 8; // Máximo de clientes a mostrar en la UI
                 
                 this.initializeEventListeners();
             }
@@ -1421,26 +1512,26 @@
                 }, 500);
             }
 
-            // Función mejorada para convertir tiempo a minutos
             timeToMinutes(timeStr) {
-                // Asumir que todas las horas son AM excepto las que están después del mediodía
+                // Convertir hora seleccionada a minutos desde 11:00 AM
                 const [timePart] = timeStr.split(' ');
                 let [hours, minutes] = timePart.split(':').map(Number);
                 
                 // Convertir a formato 24 horas
                 if (hours < 11) {
-                    // Si es menor a 11, es PM (ej: 1:00 = 13:00)
                     hours += 12;
                 }
-                // Si es 11 o 12, es AM
-                // Si es mayor a 12, ya es PM (ej: 13:00)
                 
-                return hours * 60 + minutes;
+                // Calcular minutos desde las 11:00 AM
+                const totalMinutes = (hours * 60 + minutes) - (11 * 60);
+                return Math.max(0, totalMinutes);
             }
 
             minutesToTime(minutes) {
-                const hours = Math.floor(minutes / 60);
-                const mins = Math.round(minutes % 60);
+                // Convertir minutos desde 11:00 AM a hora real
+                const totalMinutes = (11 * 60) + minutes;
+                const hours = Math.floor(totalMinutes / 60);
+                const mins = Math.round(totalMinutes % 60);
                 const period = hours >= 12 ? 'PM' : 'AM';
                 const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
                 
@@ -1449,13 +1540,96 @@
 
             initializeGame() {
                 this.gameStarted = true;
-                this.purchaseCount = 0;
+                
+                // Establecer condiciones iniciales según el horario seleccionado
+                this.setInitialConditions();
+                
                 this.updateTimeDisplay();
                 this.generateInitialCustomers();
                 this.updateGameStatus();
-                
-                // Configurar el botón de estadísticas
                 this.setupStatsToggle();
+            }
+
+            setInitialConditions() {
+                // Establecer condiciones iniciales según la tabla proporcionada
+                const conditions = this.getConditionsForTime(this.currentTime);
+                
+                this.queueLength = conditions.queue;
+                this.occupiedSeats = conditions.occupiedSeats;
+                
+                // Inicializar el registro histórico hasta el tiempo actual
+                for (let t = 0; t <= this.currentTime; t++) {
+                    const cond = this.getConditionsForTime(t);
+                    
+                    // Establecer entradas al comedor (basado en V_SYS)
+                    if (t > 0) {
+                        this.entriesLog[t] = Math.min(this.V_SYS, this.getConditionsForTime(t-1).queue);
+                    } else {
+                        this.entriesLog[t] = 0;
+                    }
+                    
+                    // Establecer salidas del comedor (personas que terminaron de comer)
+                    if (t >= this.T_EAT) {
+                        this.diningRoomLog[t] = this.entriesLog[t - this.T_EAT] || 0;
+                    } else {
+                        this.diningRoomLog[t] = 0;
+                    }
+                }
+            }
+
+            getConditionsForTime(t) {
+                // Devuelve las condiciones según la tabla proporcionada
+                if (t === 0) {
+                    return { queue: 60, occupiedSeats: 0, state: "Apertura." };
+                } else if (t === 30) {
+                    return { queue: 45, occupiedSeats: 120, state: "Fila resistente, comedor llenándose." };
+                } else if (t === 40) {
+                    return { queue: 40, occupiedSeats: 160, state: "Inicio del Caos." };
+                } else if (t === 60) {
+                    return { queue: 90, occupiedSeats: 180, state: "La fila se duplica en 20 min." };
+                } else if (t === 90) {
+                    return { queue: 165, occupiedSeats: 180, state: "Esperas críticas (>40 min)." };
+                } else if (t === 120) {
+                    return { queue: 240, occupiedSeats: 180, state: "Pico Máximo de Estrés." };
+                } else if (t === 150) {
+                    return { queue: 315, occupiedSeats: 180, state: "Pico de Fila. La afluencia cae aquí." };
+                } else if (t === 180) {
+                    return { queue: 240, occupiedSeats: 180, state: "La fila empieza a bajar rápido." };
+                } else if (t === 210) {
+                    return { queue: 165, occupiedSeats: 180, state: "Recuperando control." };
+                } else if (t === 240) {
+                    return { queue: 90, occupiedSeats: 180, state: "Ambiente más relajado." };
+                } else if (t === 270) {
+                    return { queue: 15, occupiedSeats: 180, state: "OBJETIVO LOGRADO: < 40 personas." };
+                } else if (t === 280) {
+                    return { queue: 0, occupiedSeats: 160, state: "Fila eliminada justo al cierre." };
+                } else {
+                    // Interpolar valores para tiempos intermedios
+                    return this.interpolateConditions(t);
+                }
+            }
+
+            interpolateConditions(t) {
+                // Interpolar valores para tiempos que no están en la tabla
+                let queue, occupiedSeats;
+                
+                // Encontrar los puntos más cercanos
+                let lowerPoint = 0, upperPoint = 280;
+                for (let point of [0, 30, 40, 60, 90, 120, 150, 180, 210, 240, 270, 280]) {
+                    if (point <= t) lowerPoint = point;
+                    if (point >= t && upperPoint === 280) upperPoint = point;
+                    if (point >= t && point < upperPoint) upperPoint = point;
+                }
+                
+                const lowerCond = this.getConditionsForTime(lowerPoint);
+                const upperCond = this.getConditionsForTime(upperPoint);
+                
+                // Interpolación lineal
+                const ratio = (t - lowerPoint) / (upperPoint - lowerPoint);
+                queue = Math.round(lowerCond.queue + (upperCond.queue - lowerCond.queue) * ratio);
+                occupiedSeats = Math.round(lowerCond.occupiedSeats + (upperCond.occupiedSeats - lowerCond.occupiedSeats) * ratio);
+                
+                return { queue, occupiedSeats, state: "Transición" };
             }
 
             setupStatsToggle() {
@@ -1483,29 +1657,94 @@
                 });
             }
 
+            // Función A: Tasa de Llegada λ(t)
+            getArrivalRate(t) {
+                if (t < 40) { // 11:00 - 11:40
+                    return 3.5; // Presión media-alta constante
+                } else if (t < 150) { // 11:40 - 13:30 (PICO)
+                    return 6.5; // Flujo masivo
+                } else { // 13:30 en adelante
+                    return 1.5; // Corte de flujo (Permite drenar fila)
+                }
+            }
+
+            // Función principal para procesar una compra
+            processPurchase() {
+                // Registrar entrada al comedor (personas que pasan por caja)
+                const currentMinute = Math.floor(this.currentTime);
+                this.entriesLog[currentMinute] = (this.entriesLog[currentMinute] || 0) + 1;
+                
+                // Avanzar el tiempo según la velocidad del sistema
+                this.currentTime += (1 / this.V_SYS); // Cada cliente representa 1/V_SYS minutos
+                
+                // Actualizar la longitud de la fila F(t)
+                this.calculateQueueLength();
+                
+                // Calcular asientos ocupados S_oc(t)
+                this.calculateOccupiedSeats();
+                
+                // Calcular estrés
+                this.calculateStress();
+                
+                // Actualizar UI
+                this.updateTimeDisplay();
+                this.updateGameStatus();
+                
+                // Verificar fin del juego
+                if (this.currentTime >= this.T_CLOSE) {
+                    this.endGame();
+                }
+            }
+
+            calculateQueueLength() {
+                // F(t) = max(0, F(t-1) + λ(t) - V_SYS)
+                const arrivalRate = this.getArrivalRate(this.currentTime);
+                const netChange = arrivalRate - this.V_SYS;
+                this.queueLength = Math.max(0, this.queueLength + netChange);
+            }
+
+            calculateOccupiedSeats() {
+                // Calcular personas actualmente en el comedor
+                let totalInDiningRoom = 0;
+                const currentMinute = Math.floor(this.currentTime);
+                
+                // Sumar todas las entradas en los últimos T_EAT minutos
+                for (let t = Math.max(0, currentMinute - this.T_EAT); t <= currentMinute; t++) {
+                    totalInDiningRoom += (this.entriesLog[t] || 0);
+                }
+                
+                // Restar las personas que salieron del comedor
+                for (let t = Math.max(0, currentMinute - this.T_EAT); t <= currentMinute; t++) {
+                    totalInDiningRoom -= (this.diningRoomLog[t] || 0);
+                }
+                
+                // Limitar a la capacidad real
+                this.occupiedSeats = Math.min(this.CAPACITY_REAL, Math.max(0, totalInDiningRoom));
+                
+                // Registrar cuándo saldrán las personas que acaban de entrar
+                this.diningRoomLog[currentMinute + this.T_EAT] = (this.diningRoomLog[currentMinute + this.T_EAT] || 0) + (this.entriesLog[currentMinute] || 0);
+            }
+
+            calculateStress() {
+                // Estrés del cliente
+                const waitTime = this.queueLength / this.V_SYS;
+                this.customerStress = Math.min(100, Math.pow(waitTime / 60, 2) * 100);
+                
+                // Estrés del trabajador
+                const cashierStress = this.queueLength > 5 ? 100 : 50;
+                const floorStress = (this.occupiedSeats / this.CAPACITY_REAL) * 100;
+                this.workerStress = (cashierStress * 0.6) + (floorStress * 0.4);
+            }
+
             generateInitialCustomers() {
                 const queueLine = document.getElementById('queueLine');
                 queueLine.innerHTML = '';
                 
-                const customerCount = this.getCustomerCountForTime();
+                // Determinar cuántos clientes mostrar (máximo 8)
+                const customersToShow = Math.min(this.maxCustomersInUI, Math.ceil(this.queueLength));
                 
-                for (let i = 1; i <= customerCount; i++) {
+                for (let i = 1; i <= customersToShow; i++) {
                     this.addCustomerToQueue(i);
-                }
-            }
-
-            getCustomerCountForTime() {
-                const hour = Math.floor(this.currentTime / 60);
-                
-                // Hora pico: 12:00 PM - 2:00 PM (12:00 - 14:00)
-                if (hour >= 12 && hour < 14) {
-                    return 8; // Máximo de clientes
-                } else if (hour >= 11 && hour < 12) {
-                    return 6; // Pre-pico
-                } else if (hour >= 14 && hour < 16) {
-                    return 4; // Post-pico
-                } else {
-                    return 2; // Bajo tráfico
                 }
             }
 
@@ -1542,26 +1781,6 @@
                 `;
                 
                 queueLine.appendChild(customer);
-                this.customers.push(customerId);
-            }
-
-            // Función para avanzar el tiempo por compra
-            advanceTimeByPurchase() {
-                this.purchaseCount++;
-                this.currentTime += this.timePerPurchase; // Añadir 30 segundos (0.5 minutos)
-                
-                // Actualizar display del tiempo
-                this.updateTimeDisplay();
-                
-                // Verificar si el juego ha terminado
-                if (this.currentTime >= this.timeToMinutes('3:30 PM')) {
-                    this.endGame();
-                    return;
-                }
-                
-                // Gestionar el flujo de clientes después del cambio de tiempo
-                this.manageCustomerFlow();
-                this.updateGameStatus();
             }
 
             updateTimeDisplay() {
@@ -1570,47 +1789,97 @@
             }
 
             updateGameStatus() {
-                const queueLine = document.getElementById('queueLine');
-                const peopleCount = queueLine.querySelectorAll('.customer').length;
-                
-                // Actualizar contador de personas en la tabla de información
-                document.getElementById('peopleCount').textContent = peopleCount;
-                
-                // Actualizar información de asientos
-                const occupiedSeats = this.servedCustomers;
-                const freeSeats = this.totalSeats - occupiedSeats;
-                
-                document.getElementById('seatsMain').textContent = `${freeSeats} libres`;
-                document.getElementById('seatsDetail').textContent = `${occupiedSeats} ocupados / ${this.totalSeats} total`;
-                
-                // Calcular y actualizar estrés
-                const stressLevel = Math.min(100, Math.round((peopleCount / 8) * 100));
-                document.getElementById('stressFill').style.width = stressLevel + '%';
-                document.getElementById('stressLevel').textContent = stressLevel + '%';
+                // Actualizar contadores principales
+                document.getElementById('servedCount').textContent = this.servedCustomers;
+                document.getElementById('waitTime').textContent = `${Math.round(this.queueLength / this.V_SYS)} min`;
+                document.getElementById('occupiedSeats').textContent = Math.floor(this.occupiedSeats);
+                document.getElementById('revenueCount').textContent = '$' + this.totalRevenue.toLocaleString('es-CO');
                 
                 // Actualizar indicador de tráfico
-                this.updateTrafficIndicator(peopleCount);
+                this.updateTrafficIndicator();
                 
-                // Actualizar contador de atendidos e ingresos en el header
-                document.getElementById('servedCount').textContent = this.servedCustomers;
-                document.getElementById('revenueCount').textContent = '$' + this.totalRevenue.toLocaleString('es-CO');
+                // Actualizar panel de estadísticas
+                document.getElementById('peopleCount').textContent = Math.floor(this.queueLength);
+                document.getElementById('seatsMain').textContent = `${Math.floor(this.CAPACITY_REAL - this.occupiedSeats)} libres`;
+                document.getElementById('seatsDetail').textContent = `${Math.floor(this.occupiedSeats)} ocupados / ${this.CAPACITY_REAL} total`;
+                
+                // Actualizar estrés del cliente
+                this.updateStressBar('customerStressBar', 'customerStressLevel', this.customerStress);
+                
+                // Actualizar estrés del trabajador
+                this.updateStressBar('workerStressBar', 'workerStressLevel', this.workerStress);
+                
+                // Actualizar métricas del sistema
+                document.getElementById('arrivalRate').textContent = `${this.getArrivalRate(this.currentTime).toFixed(1)}/min`;
+                document.getElementById('systemSpeed').textContent = `${this.V_SYS.toFixed(1)}/min`;
+                
+                // Actualizar clientes visibles en la fila
+                this.updateVisibleCustomers();
             }
 
-            updateTrafficIndicator(peopleCount) {
+            updateStressBar(barId, levelId, stressValue) {
+                const stressBar = document.getElementById(barId);
+                const stressLevel = document.getElementById(levelId);
+                const stressPercent = Math.round(stressValue);
+                
+                stressBar.style.width = stressPercent + '%';
+                stressLevel.textContent = stressPercent + '%';
+                
+                // Cambiar color según nivel de estrés
+                stressBar.className = 'stress-fill';
+                if (stressPercent < 25) {
+                    stressBar.classList.add('stress-low');
+                } else if (stressPercent < 50) {
+                    stressBar.classList.add('stress-medium');
+                } else if (stressPercent < 75) {
+                    stressBar.classList.add('stress-high');
+                } else {
+                    stressBar.classList.add('stress-critical');
+                }
+            }
+
+            updateTrafficIndicator() {
                 const indicator = document.getElementById('peakIndicator');
                 const icon = document.getElementById('trafficIcon');
+                const text = document.getElementById('trafficText');
                 
                 indicator.className = 'peak-indicator';
                 
-                if (peopleCount >= 6) {
-                    indicator.classList.add('high-traffic');
-                    icon.textContent = '🔴';
-                } else if (peopleCount >= 4) {
+                if (this.currentTime < 40) { // 11:00 - 11:40
                     indicator.classList.add('normal-traffic');
                     icon.textContent = '🟡';
-                } else {
+                    text.textContent = 'Presión Media';
+                } else if (this.currentTime < 150) { // 11:40 - 13:30 (PICO)
+                    indicator.classList.add('high-traffic');
+                    icon.textContent = '🔴';
+                    text.textContent = 'PICO MÁXIMO';
+                } else { // 13:30 en adelante
                     indicator.classList.add('low-traffic');
                     icon.textContent = '🟢';
+                    text.textContent = 'Recuperación';
+                }
+            }
+
+            updateVisibleCustomers() {
+                const queueLine = document.getElementById('queueLine');
+                const currentCustomers = queueLine.querySelectorAll('.customer').length;
+                const targetCustomers = Math.min(this.maxCustomersInUI, Math.ceil(this.queueLength));
+                
+                // Agregar clientes si es necesario
+                if (currentCustomers < targetCustomers) {
+                    for (let i = currentCustomers + 1; i <= targetCustomers; i++) {
+                        this.addCustomerToQueue(i);
+                    }
+                }
+                
+                // Remover clientes si hay demasiados
+                if (currentCustomers > targetCustomers) {
+                    const customers = queueLine.querySelectorAll('.customer');
+                    for (let i = targetCustomers; i < currentCustomers; i++) {
+                        if (customers[i]) {
+                            customers[i].remove();
+                        }
+                    }
                 }
             }
 
@@ -1693,8 +1962,8 @@
                         // Procesar el pago y avanzar la fila
                         this.processPayment(selectedPaymentOption.amount);
                         
-                        // Avanzar el tiempo por esta compra
-                        this.advanceTimeByPurchase();
+                        // Procesar la compra (avanza el tiempo)
+                        this.processPurchase();
                         
                         // Resetear menú
                         foodItems.forEach(item => item.classList.remove('selected'));
@@ -1744,7 +2013,7 @@
                 this.servedCustomers++;
                 this.totalRevenue += amount;
                 
-                // Avanzar la fila
+                // Avanzar la fila visualmente
                 this.advanceQueue();
             }
 
@@ -1779,33 +2048,24 @@
                 }, 200);
             }
 
-            manageCustomerFlow() {
-                const queueLine = document.getElementById('queueLine');
-                const currentCustomers = queueLine.querySelectorAll('.customer').length;
-                const targetCustomers = this.getCustomerCountForTime();
-                
-                // Agregar clientes si es necesario
-                if (currentCustomers < targetCustomers && this.availableSeats > 0) {
-                    const newCustomerId = Math.max(...this.customers, 0) + 1;
-                    this.addCustomerToQueue(newCustomerId);
-                }
-                
-                // Remover clientes si hay demasiados
-                if (currentCustomers > targetCustomers) {
-                    const lastCustomer = queueLine.lastElementChild;
-                    if (lastCustomer) {
-                        lastCustomer.remove();
-                        this.customers = this.customers.filter(id => id !== parseInt(lastCustomer.dataset.customerId));
-                    }
-                }
-            }
-
             endGame() {
                 // Mostrar resultados finales
-                alert(`¡Juego terminado!\n\nAtendidos: ${this.servedCustomers}\nIngresos: $${this.totalRevenue.toLocaleString('es-CO')}\nCompras: ${this.purchaseCount}\nAsientos libres: ${this.totalSeats - this.servedCustomers}`);
+                const avgWaitTime = this.queueLength / this.V_SYS;
+                const maxStress = Math.max(this.customerStress, this.workerStress);
                 
-                // Opción de reiniciar
-                if (confirm('¿Jugar de nuevo?')) {
+                const message = `
+                    ¡Juego terminado!
+                    
+                    Resultados Finales:
+                    • Clientes atendidos: ${this.servedCustomers}
+                    • Ingresos totales: $${this.totalRevenue.toLocaleString('es-CO')}
+                    • Tiempo promedio de espera: ${avgWaitTime.toFixed(1)} minutos
+                    • Estrés máximo alcanzado: ${maxStress.toFixed(1)}%
+                    
+                    ¿Deseas jugar de nuevo?
+                `;
+                
+                if (confirm(message)) {
                     location.reload();
                 }
             }
