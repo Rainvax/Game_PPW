@@ -478,8 +478,8 @@
             right: 20px;
             top: 15%;
             transform: translateY(-50%);
-            width: 320px;
-            height: 200px;
+            width: 400px;
+            height: 280px;
             background: linear-gradient(135deg, #2c3e50, #34495e);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
@@ -490,7 +490,7 @@
             position: relative;
             border: 3px solid rgba(255,255,255,0.1);
             overflow: hidden;
-            padding: 15px;
+            padding: 20px;
             z-index: 50;
         }
 
@@ -521,7 +521,7 @@
             display: flex;
             gap: 15px;
             z-index: 1;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .food-item {
@@ -584,24 +584,27 @@
             opacity: 1;
         }
 
-        /* Área de visualización del menú seleccionado */
+        /* Área de visualización del menú seleccionado - MODIFICADA */
         .selected-menu {
             width: 100%;
-            height: 80px;
+            height: 120px;
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
+            justify-content: flex-start;
+            gap: 15px;
+            padding: 15px;
             position: relative;
             border: 2px solid rgba(255,255,255,0.2);
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex-wrap: nowrap;
         }
 
         .selected-item {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: rgba(255,255,255,0.9);
             border-radius: 8px;
             display: flex;
@@ -610,6 +613,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             position: relative;
             animation: slideIn 0.3s ease;
+            flex-shrink: 0;
         }
 
         .selected-item img {
@@ -621,14 +625,14 @@
 
         .selected-item-label {
             position: absolute;
-            bottom: -20px;
+            bottom: -25px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.8);
             color: white;
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 6px;
-            font-size: 9px;
+            font-size: 10px;
             white-space: nowrap;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -640,7 +644,7 @@
 
         .empty-selection {
             color: rgba(255,255,255,0.6);
-            font-size: 12px;
+            font-size: 14px;
             font-style: italic;
         }
 
@@ -650,13 +654,13 @@
             color: white;
             border: none;
             border-radius: 20px;
-            padding: 8px 20px;
-            font-size: 12px;
+            padding: 10px 25px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .confirm-button:hover {
@@ -859,6 +863,37 @@
                 transparent 50px,
                 transparent 100px
             );
+        }
+
+        /* Botón de volver al menú */
+        .back-to-menu {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-to-menu:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            background: white;
+        }
+
+        .back-to-menu:active {
+            transform: translateY(0);
         }
 
         /* Botón de Estados minimizado */
@@ -1265,6 +1300,12 @@
                 <div class="bg-circle"></div>
             </div>
 
+            <!-- Botón de volver al menú -->
+            <button class="back-to-menu" id="backToMenu">
+                <span>⬅️</span>
+                <span>Menú Principal</span>
+            </button>
+
             <!-- Indicador de tráfico -->
             <div class="peak-indicator" id="peakIndicator">
                 <span id="trafficIcon">🟡</span>
@@ -1443,7 +1484,7 @@
     </div>
 
     <script>
-        // Sistema de Restaurante con Modelo Matemático Corregido
+        // Sistema de Restaurante con Modelo Matemático Avanzado
         class RestaurantGame {
             constructor() {
                 // Constantes configurables del modelo matemático
@@ -1465,6 +1506,9 @@
                 this.workerStress = 0;
                 this.selectedTime = null;
                 this.gameStarted = false;
+                
+                // Estado guardado para mantener continuidad
+                this.savedState = null;
                 
                 // Registro histórico para cálculos
                 this.entriesLog = {}; // Objeto para registrar entradas por minuto
@@ -1494,6 +1538,11 @@
                     this.startGame();
                 });
                 
+                // Botón de volver al menú
+                document.getElementById('backToMenu').addEventListener('click', () => {
+                    this.returnToMenu();
+                });
+                
                 // Lógica del juego
                 this.setupGameLogic();
             }
@@ -1510,6 +1559,52 @@
                     document.getElementById('gameScreen').classList.add('active');
                     this.initializeGame();
                 }, 500);
+            }
+
+            returnToMenu() {
+                // Guardar estado actual antes de volver
+                this.saveCurrentState();
+                
+                // Mostrar pantalla de inicio
+                document.getElementById('gameScreen').classList.remove('active');
+                document.getElementById('startScreen').classList.remove('hidden');
+                
+                // Limpiar selección de tiempo
+                const timeOptions = document.querySelectorAll('.time-option');
+                timeOptions.forEach(opt => opt.classList.remove('selected'));
+                document.getElementById('startButton').disabled = true;
+                
+                // Reiniciar variables
+                this.selectedTime = null;
+                this.gameStarted = false;
+                this.servedCustomers = 0;
+                this.totalRevenue = 0;
+            }
+
+            saveCurrentState() {
+                // Guardar el estado actual para mantener continuidad
+                this.savedState = {
+                    currentTime: this.currentTime,
+                    queueLength: this.queueLength,
+                    servedCustomers: this.servedCustomers,
+                    totalRevenue: this.totalRevenue,
+                    occupiedSeats: this.occupiedSeats,
+                    entriesLog: {...this.entriesLog},
+                    diningRoomLog: {...this.diningRoomLog}
+                };
+            }
+
+            loadSavedState() {
+                // Cargar el estado guardado si existe
+                if (this.savedState) {
+                    this.currentTime = this.savedState.currentTime;
+                    this.queueLength = this.savedState.queueLength;
+                    this.servedCustomers = this.savedState.servedCustomers;
+                    this.totalRevenue = this.savedState.totalRevenue;
+                    this.occupiedSeats = this.savedState.occupiedSeats;
+                    this.entriesLog = {...this.savedState.entriesLog};
+                    this.diningRoomLog = {...this.savedState.diningRoomLog};
+                }
             }
 
             timeToMinutes(timeStr) {
@@ -1541,8 +1636,13 @@
             initializeGame() {
                 this.gameStarted = true;
                 
-                // Establecer condiciones iniciales según el horario seleccionado
-                this.setInitialConditions();
+                // Cargar estado guardado si existe
+                this.loadSavedState();
+                
+                // Si no hay estado guardado, establecer condiciones iniciales
+                if (!this.savedState) {
+                    this.setInitialConditions();
+                }
                 
                 this.updateTimeDisplay();
                 this.generateInitialCustomers();
@@ -1728,6 +1828,7 @@
             calculateStress() {
                 // Estrés del cliente
                 const waitTime = this.queueLength / this.V_SYS;
+                // Stress_cli(t) = min(100, (W(t)/60)^2 * 100)
                 this.customerStress = Math.min(100, Math.pow(waitTime / 60, 2) * 100);
                 
                 // Estrés del trabajador
