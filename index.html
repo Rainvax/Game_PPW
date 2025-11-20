@@ -3,1717 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Restaurante - Simulación Avanzada</title>
+    <title>Chef Simulator: Secuencia Perfecta</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Pantalla de Inicio */
-        .start-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            transition: all 0.5s ease;
-        }
-
-        .start-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .start-content {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-            animation: slideIn 0.5s ease;
-        }
-
-        .start-title {
-            color: #2c3e50;
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .start-description {
-            color: #555;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .time-options {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .time-option {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 15px 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .time-option:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-            background: linear-gradient(135deg, #2980b9, #21618c);
-        }
-
-        .time-option.selected {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-        }
-
-        .start-button {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-        }
-
-        .start-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
-            background: linear-gradient(135deg, #c0392b, #a93226);
-        }
-
-        .start-button:disabled {
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* Pantalla de Juego */
-        .game-screen {
-            flex: 1;
-            display: none;
-            flex-direction: column;
-        }
-
-        .game-screen.active {
-            display: flex;
-        }
-
-        header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .time-display {
-            font-size: 28px;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .game-stats {
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-
-        .stat-item {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stat-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .scene-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 40px;
-        }
-
-        .restaurant-area {
-            position: relative;
-            width: 100%;
-            max-width: 1200px;
-            height: 400px;
-        }
-
-        .queue-line {
-            display: flex;
-            align-items: flex-end;
-            position: absolute;
-            bottom: 0;
-            left: 50px;
-            gap: 25px;
-        }
-
-        .customer {
-            position: relative;
-            animation: professionalWait 4s infinite ease-in-out;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
-            transition: transform 0.3s ease;
-            transform-origin: bottom center;
-            width: 80px;
-            height: 170px;
-        }
-
-        .customer:hover {
-            transform: translateY(-15px) scale(1.05);
-        }
-
-        .customer:nth-child(1) { animation-delay: 0s; z-index: 8; }
-        .customer:nth-child(2) { animation-delay: 0.3s; z-index: 7; }
-        .customer:nth-child(3) { animation-delay: 0.6s; z-index: 6; }
-        .customer:nth-child(4) { animation-delay: 0.9s; z-index: 5; }
-        .customer:nth-child(5) { animation-delay: 1.2s; z-index: 4; }
-        .customer:nth-child(6) { animation-delay: 1.5s; z-index: 3; }
-        .customer:nth-child(7) { animation-delay: 1.8s; z-index: 2; }
-        .customer:nth-child(8) { animation-delay: 2.1s; z-index: 1; }
-
-        /* Animaciones de movimiento de la fila */
-        .customer.exiting {
-            animation: customerExit 1s ease-out forwards;
-        }
-
-        .customer.moving-forward {
-            animation: moveForward 0.8s ease-out forwards;
-        }
-
-        @keyframes customerExit {
-            0% {
-                transform: translateX(0) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateX(200px) rotate(15deg);
-                opacity: 0;
-            }
-        }
-
-        @keyframes moveForward {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(-25px);
-            }
-        }
-
-        /* Cabeza más pequeña */
-        .customer-head {
-            width: 40px;
-            height: 45px;
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            border-radius: 50%;
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-
-        .customer-face {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 25px;
-        }
-
-        .customer-eyes {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .eye {
-            width: 12px;
-            height: 12px;
-            background: #2c3e50;
-            border-radius: 50%;
-            position: relative;
-        }
-
-        .eye::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 4px;
-            height: 4px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        /* Cuello más pequeño */
-        .customer-neck {
-            width: 18px;
-            height: 10px;
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 4px;
-            z-index: 9;
-        }
-
-        /* Torso más pequeño */
-        .customer-torso {
-            width: 50px;
-            height: 65px;
-            position: absolute;
-            top: 45px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 12px 12px 8px 8px;
-            z-index: 5;
-        }
-
-        .customer-1 .customer-torso { background: linear-gradient(135deg, #4a69bd, #1e3799); }
-        .customer-2 .customer-torso { background: linear-gradient(135deg, #e55039, #b33939); }
-        .customer-3 .customer-torso { background: linear-gradient(135deg, #6ab04c, #27ae60); }
-        .customer-4 .customer-torso { background: linear-gradient(135deg, #f0932b, #eb4d4b); }
-        .customer-5 .customer-torso { background: linear-gradient(135deg, #22a6b3, #006ba6); }
-        .customer-6 .customer-torso { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .customer-7 .customer-torso { background: linear-gradient(135deg, #e67e22, #d35400); }
-        .customer-8 .customer-torso { background: linear-gradient(135deg, #1abc9c, #16a085); }
-
-        /* Brazos más pequeños */
-        .left-arm {
-            position: absolute;
-            top: 55px;
-            left: 12px;
-            width: 15px;
-            height: 45px;
-            background: linear-gradient(135deg, #4a69bd, #1e3799);
-            border-radius: 8px;
-            transform-origin: top center;
-            animation: leftArmSwing 4s infinite ease-in-out;
-            z-index: 4;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-            transform: rotate(8deg);
-        }
-
-        .customer-2 .left-arm { background: linear-gradient(135deg, #e55039, #b33939); }
-        .customer-3 .left-arm { background: linear-gradient(135deg, #6ab04c, #27ae60); }
-        .customer-4 .left-arm { background: linear-gradient(135deg, #f0932b, #eb4d4b); }
-        .customer-5 .left-arm { background: linear-gradient(135deg, #22a6b3, #006ba6); }
-        .customer-6 .left-arm { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .customer-7 .left-arm { background: linear-gradient(135deg, #e67e22, #d35400); }
-        .customer-8 .left-arm { background: linear-gradient(135deg, #1abc9c, #16a085); }
-
-        .left-fist {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 18px;
-            height: 18px;
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        .right-arm {
-            position: absolute;
-            top: 55px;
-            right: 12px;
-            width: 15px;
-            height: 45px;
-            background: linear-gradient(135deg, #4a69bd, #1e3799);
-            border-radius: 8px;
-            transform-origin: top center;
-            animation: rightArmSwing 4s infinite ease-in-out;
-            z-index: 4;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-            transform: rotate(-8deg);
-        }
-
-        .customer-2 .right-arm { background: linear-gradient(135deg, #e55039, #b33939); }
-        .customer-3 .right-arm { background: linear-gradient(135deg, #6ab04c, #27ae60); }
-        .customer-4 .right-arm { background: linear-gradient(135deg, #f0932b, #eb4d4b); }
-        .customer-5 .right-arm { background: linear-gradient(135deg, #22a6b3, #006ba6); }
-        .customer-6 .right-arm { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .customer-7 .right-arm { background: linear-gradient(135deg, #e67e22, #d35400); }
-        .customer-8 .right-arm { background: linear-gradient(135deg, #1abc9c, #16a085); }
-
-        .right-fist {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 18px;
-            height: 18px;
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        /* Piernas más pequeñas */
-        .left-leg {
-            position: absolute;
-            top: 105px;
-            left: 20px;
-            width: 16px;
-            height: 55px;
-            background: #2c3e50;
-            border-radius: 8px;
-            z-index: 3;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-        }
-
-        .left-foot {
-            position: absolute;
-            bottom: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 12px;
-            background: #34495e;
-            border-radius: 12px 12px 6px 6px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        .right-leg {
-            position: absolute;
-            top: 105px;
-            right: 20px;
-            width: 16px;
-            height: 55px;
-            background: #2c3e50;
-            border-radius: 8px;
-            z-index: 3;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-        }
-
-        .right-foot {
-            position: absolute;
-            bottom: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 12px;
-            background: #34495e;
-            border-radius: 12px 12px 6px 6px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        .ground-shadow {
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70px;
-            height: 10px;
-            background: rgba(0,0,0,0.25);
-            border-radius: 50%;
-            filter: blur(8px);
-            z-index: 1;
-        }
-
-        /* Barra del restaurante */
-        .counter {
-            position: absolute;
-            right: 20px;
-            top: 15%;
-            transform: translateY(-50%);
-            width: 400px;
-            height: 280px;
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-            border: 3px solid rgba(255,255,255,0.1);
-            overflow: hidden;
-            padding: 20px;
-            z-index: 50;
-        }
-
-        .counter::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-            border-bottom: 2px solid rgba(255,255,255,0.1);
-        }
-
-        .counter-shine {
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-
-        /* Área de selección de comida */
-        .food-selection {
-            display: flex;
-            gap: 15px;
-            z-index: 1;
-            margin-top: 15px;
-        }
-
-        .food-item {
-            width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            border: 3px solid transparent;
-        }
-
-        .food-item:hover {
-            transform: scale(1.1) rotate(5deg);
-            border-color: rgba(255,255,255,0.5);
-        }
-
-        .food-item.selected {
-            border-color: #27ae60;
-            background: rgba(39, 174, 96, 0.2);
-            transform: scale(1.05);
-        }
-
-        .food-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .food-item:hover img {
-            transform: scale(1.1);
-        }
-
-        /* Efectos de reflexión para las imágenes */
-        .food-item::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, 
-                transparent 30%, 
-                rgba(255,255,255,0.3) 50%, 
-                transparent 70%);
-            transform: rotate(45deg);
-            animation: foodShine 4s infinite;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .food-item:hover::before {
-            opacity: 1;
-        }
-
-        /* Área de visualización del menú seleccionado - MODIFICADA */
-        .selected-menu {
-            width: 100%;
-            height: 120px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 15px;
-            padding: 15px;
-            position: relative;
-            border: 2px solid rgba(255,255,255,0.2);
-            overflow-x: auto;
-            overflow-y: hidden;
-            flex-wrap: nowrap;
-        }
-
-        .selected-item {
-            width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            position: relative;
-            animation: slideIn 0.3s ease;
-            flex-shrink: 0;
-        }
-
-        .selected-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
-        .selected-item-label {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .selected-item:hover .selected-item-label {
-            opacity: 1;
-        }
-
-        .empty-selection {
-            color: rgba(255,255,255,0.6);
-            font-size: 14px;
-            font-style: italic;
-        }
-
-        /* Botón de confirmación */
-        .confirm-button {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 10px 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-            margin-top: 15px;
-        }
-
-        .confirm-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
-            background: linear-gradient(135deg, #229954, #1e8449);
-        }
-
-        .confirm-button:active {
-            transform: translateY(0);
-        }
-
-        .confirm-button:disabled {
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* Modal de pago */
-        .payment-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .payment-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .payment-content {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            transform: scale(0.8) translateY(20px);
-            transition: all 0.3s ease;
-            border: 3px solid rgba(255,255,255,0.1);
-            position: relative;
-        }
-
-        .payment-modal.active .payment-content {
-            transform: scale(1) translateY(0);
-        }
-
-        .payment-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .payment-title {
-            color: white;
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .payment-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .payment-option {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 15px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .payment-option:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.4);
-            transform: translateY(-2px);
-        }
-
-        .payment-option.selected {
-            background: rgba(39, 174, 96, 0.2);
-            border-color: #27ae60;
-        }
-
-        .payment-option::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .payment-option:hover::before {
-            left: 100%;
-        }
-
-        .payment-option-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .payment-option-title {
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .payment-option-price {
-            color: #f39c12;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .payment-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .payment-button {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .payment-cancel {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-
-        .payment-cancel:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.5);
-        }
-
-        .payment-confirm {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            color: white;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-        }
-
-        .payment-confirm:hover {
-            background: linear-gradient(135deg, #229954, #1e8449);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
-        }
-
-        .payment-confirm:disabled {
-            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* Suelo del restaurante */
-        .floor {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);
-            transform: rotateX(70deg);
-            transform-origin: bottom;
-        }
-
-        .floor-lines {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: repeating-linear-gradient(
-                90deg,
-                rgba(255,255,255,0.1),
-                rgba(255,255,255,0.1) 50px,
-                transparent 50px,
-                transparent 100px
-            );
-        }
-
-        /* Botón de volver al menú */
-        .back-to-menu {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .back-to-menu:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            background: white;
-        }
-
-        .back-to-menu:active {
-            transform: translateY(0);
-        }
-
-        /* Botón de Estados minimizado */
-        .status-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            background: white;
-        }
-
-        .status-toggle:active {
-            transform: translateY(0);
-        }
-
-        .status-toggle.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .status-icon {
-            width: 20px;
-            height: 20px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-toggle.active .status-icon {
-            background: rgba(255,255,255,0.3);
-        }
+        /* --- ESTILOS BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        body { background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* LAYOUT */
+        .main-layout { display: flex; flex: 1; height: 100%; }
+        .game-section { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* SIDEBAR */
+        .stats-sidebar { width: 300px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border-left: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; display: flex; flex-direction: column; gap: 20px; color: white; box-shadow: -10px 0 30px rgba(0,0,0,0.3); z-index: 200; }
+        .sidebar-title { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #bdc3c7; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 10px; }
+        .metric-card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 15px; position: relative; }
+        .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .metric-label { font-size: 12px; font-weight: 600; color: #bdc3c7; }
+        .metric-value { font-size: 16px; font-weight: bold; }
+        .progress-track { height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 5px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; width: 0%; transition: width 0.5s ease; border-radius: 5px; }
+        .fill-safe { background: #2ecc71; } .fill-warn { background: #f1c40f; } .fill-danger { background: #e74c3c; }
+
+        /* GAME AREA */
+        .game-area { flex: 1; position: relative; display: flex; justify-content: center; align-items: flex-end; perspective: 1200px; overflow: hidden; padding-bottom: 220px; }
+        .floor { position: absolute; bottom: 0; left: -50%; width: 200%; height: 600px; background: repeating-linear-gradient(45deg, #34495e 0, #34495e 20px, #2c3e50 20px, #2c3e50 40px); transform: rotateX(70deg); transform-origin: bottom; z-index: 0; opacity: 0.5; }
+        .queue-container { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; justify-content: center; height: 300px; width: 100%; z-index: 10; pointer-events: none; }
+        
+        /* CLIENTES */
+        .customer { position: absolute; bottom: 0; width: 100px; height: 220px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
+        
+        /* Posiciones Z-index para que se vean uno detrás de otro */
+        .pos-0 { z-index: 50; transform: scale(1.2) translateY(20px); filter: brightness(1.1); } 
+        .pos-1 { z-index: 49; transform: scale(1.0) translateY(-20px) translateX(60px); filter: brightness(0.9); opacity: 0.9; }
+        .pos-2 { z-index: 48; transform: scale(0.9) translateY(-50px) translateX(110px); filter: brightness(0.8); opacity: 0.8; }
+        .pos-3 { z-index: 47; transform: scale(0.85) translateY(-70px) translateX(150px); filter: brightness(0.7); opacity: 0.7; }
+        .pos-4 { z-index: 46; transform: scale(0.8) translateY(-90px) translateX(180px); filter: brightness(0.6); opacity: 0.6; }
+        
+        /* Animación de Salida (El paso clave 3) */
+        .customer.leaving {
+            animation: leaveRight 0.5s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53);
+            z-index: 100 !important; /* Pasa por enfrente */
+        }
+        @keyframes leaveRight {
+            0% { transform: scale(1.2) translateY(20px); opacity: 1; }
+            100% { transform: scale(1.3) translateY(50px) translateX(400px) rotate(10deg); opacity: 0; }
+        }
+
+        .c-body-group { position: relative; width: 80px; height: 160px; transition: transform 0.3s; }
+        .c-head { width: 60px; height: 65px; background: #ffccaa; border-radius: 50%; position: absolute; top: 0; left: 10px; z-index: 2; }
+        .c-torso { width: 80px; height: 90px; background: #3498db; border-radius: 20px 20px 0 0; position: absolute; top: 55px; left: 0; z-index: 1; }
+        .c-eye { width: 8px; height: 8px; background: #333; border-radius: 50%; position: absolute; top: 25px; }
+        .eye-l { left: 15px; } .eye-r { right: 15px; }
+        .c-mouth { width: 20px; height: 5px; background: #333; border-radius: 10px; position: absolute; top: 45px; left: 20px; transition: all 0.3s; }
+
+        /* Variaciones Visuales */
+        .var-1 .c-torso { background: #e74c3c; } .var-1 .c-head { background: #f1c27d; }
+        .var-2 .c-torso { background: #8e44ad; } .var-2 .c-head { background: #e0ac69; }
+        .var-3 .c-torso { background: #27ae60; } .var-3 .c-head { background: #ffccaa; }
+
+        /* Estados de Ánimo */
+        .mood-angry .c-head { background: #ff7675; }
+        .mood-angry .c-mouth { height: 15px; border-radius: 50%; top: 40px; }
+        .mood-angry .c-body-group { animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(2deg); } }
+
+        /* BURBUJA DE PEDIDO (Paso clave 5) */
+        .order-bubble { 
+            position: absolute; top: -90px; right: -40px; 
+            background: white; padding: 10px 20px; border-radius: 20px; 
+            font-size: 35px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+            border: 3px solid #333; z-index: 100; color: #333; 
+            transform: scale(0); /* Empieza invisible */
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .order-bubble::after { content: ''; position: absolute; bottom: -10px; left: 20px; border-width: 10px 10px 0; border-style: solid; border-color: #333 transparent transparent transparent; }
+
+        /* CLASE PARA MOSTRAR BURBUJA */
+        .pos-0 .order-bubble.show { transform: scale(1); }
+
+        /* COCINA */
+        .kitchen-panel { position: absolute; bottom: 0; left: 0; width: 100%; height: 200px; background: #2c3e50; border-top: 5px solid #34495e; display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 100; box-shadow: 0 -10px 50px rgba(0,0,0,0.5); }
+        .food-btn { width: 110px; height: 110px; background: #ecf0f1; border-radius: 20px; border: none; border-bottom: 8px solid #bdc3c7; font-size: 40px; cursor: pointer; transition: all 0.1s; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #333; position: relative; }
+        .food-btn span { font-size: 12px; font-weight: bold; color: #7f8c8d; margin-top: 5px; text-transform: uppercase; }
+        .food-btn:active { transform: translateY(4px); border-bottom-width: 4px; background: #dfe6e9; }
+        
+        /* Feedback y Header Stats */
+        .top-header { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; display: flex; justify-content: center; gap: 40px; z-index: 50; pointer-events: none; }
+        .top-stat { background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 30px; color: white; font-weight: bold; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(5px); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .btn-start { padding: 15px 40px; font-size: 20px; background: #e67e22; border: none; color: white; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .hidden { display: none !important; }
+        .feedback { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: 900; text-align: center; text-shadow: 0 5px 20px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; z-index: 200; }
+        .feedback.good { color: #2ecc71; animation: feedbackUp 0.8s forwards; }
+        .feedback.bad { color: #e74c3c; animation: feedbackShake 0.5s forwards; }
+        @keyframes feedbackUp { 0% { opacity: 0; transform: translate(-50%, -30%); } 20% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -100%); } }
+        @keyframes feedbackShake { 0%, 100% { transform: translate(-50%, -50%); } 25% { transform: translate(-60%, -50%); } 75% { transform: translate(-40%, -50%); } }
 
-        /* Tabla de información unificada */
-        .info-table {
-            position: absolute;
-            top: 70px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-            min-width: 280px;
-            font-size: 14px;
-            z-index: 99;
-            transform-origin: top right;
-            transition: all 0.3s ease;
-            opacity: 0;
-            transform: scale(0.8) translateY(-10px);
-            pointer-events: none;
-        }
-
-        .info-table.expanded {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-            pointer-events: all;
-        }
-
-        .info-table h3 {
-            margin: 0 0 15px 0;
-            color: #2c3e50;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 8px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 5px 0;
-        }
-
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .info-label {
-            color: #555;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-value {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 14px;
-        }
-
-        .info-icon {
-            width: 16px;
-            height: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 10px;
-        }
-
-        .people-icon {
-            background: #3498db;
-            color: white;
-        }
-
-        .seats-icon {
-            background: #27ae60;
-            color: white;
-        }
-
-        .stress-bar {
-            width: 80px;
-            height: 8px;
-            background: #ecf0f1;
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .stress-fill {
-            height: 100%;
-            border-radius: 4px;
-            width: 65%;
-            animation: stressPulse 3s infinite ease-in-out;
-        }
-
-        .stress-level {
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 5px;
-        }
-
-        .stress-low { background: linear-gradient(90deg, #27ae60, #2ecc71); }
-        .stress-medium { background: linear-gradient(90deg, #f39c12, #f1c40f); }
-        .stress-high { background: linear-gradient(90deg, #e67e22, #d35400); }
-        .stress-critical { background: linear-gradient(90deg, #e74c3c, #c0392b); }
-
-        .seats-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
-        }
-
-        .seats-main {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .seats-detail {
-            font-size: 11px;
-            color: #7f8c8d;
-        }
-
-        .metrics-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .metrics-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        /* Indicador de tráfico */
-        .peak-indicator {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .peak-indicator.high-traffic {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .peak-indicator.normal-traffic {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-        }
-
-        .peak-indicator.low-traffic {
-            background: linear-gradient(135deg, #27ae60, #229954);
-            color: white;
-        }
-
-        @keyframes professionalWait {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
-            }
-            25% {
-                transform: translateY(-5px) rotate(-1deg);
-            }
-            75% {
-                transform: translateY(-5px) rotate(1deg);
-            }
-        }
-
-        @keyframes leftArmSwing {
-            0%, 100% {
-                transform: rotate(6deg);
-            }
-            50% {
-                transform: rotate(10deg);
-            }
-        }
-
-        @keyframes rightArmSwing {
-            0%, 100% {
-                transform: rotate(-6deg);
-            }
-            50% {
-                transform: rotate(-10deg);
-            }
-        }
-
-        @keyframes shine {
-            0% {
-                transform: translateX(-100%) translateY(-100%) rotate(45deg);
-            }
-            100% {
-                transform: translateX(100%) translateY(100%) rotate(45deg);
-            }
-        }
-
-        @keyframes foodShine {
-            0% {
-                transform: translateX(-100%) translateY(-100%) rotate(45deg);
-            }
-            100% {
-                transform: translateX(100%) translateY(100%) rotate(45deg);
-            }
-        }
-
-        @keyframes stressPulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.8;
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .background-decoration {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .bg-circle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .bg-circle:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: 10%;
-            left: 5%;
-        }
-
-        .bg-circle:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            bottom: 20%;
-            right: 10%;
-        }
-
-        .bg-circle:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            top: 50%;
-            right: 30%;
-        }
     </style>
 </head>
 <body>
-    <!-- Pantalla de Inicio -->
-    <div class="start-screen" id="startScreen">
-        <div class="start-content">
-            <h1 class="start-title">🍽️ Sistema de Restaurante</h1>
-            <p class="start-description">
-                Simulación avanzada con modelo matemático de flujo y estrés.
-                <br>
-                El tiempo avanza según las compras realizadas.
-                <br>
-                Las condiciones iniciales se ajustan al horario seleccionado.
-            </p>
-            
-            <div class="time-options">
-                <button class="time-option" data-time="11:00">11:00</button>
-                <button class="time-option" data-time="11:30">11:30</button>
-                <button class="time-option" data-time="12:00">12:00</button>
-                <button class="time-option" data-time="12:30">12:30</button>
-                <button class="time-option" data-time="1:00">1:00</button>
-                <button class="time-option" data-time="1:30">1:30</button>
-                <button class="time-option" data-time="2:00">2:00</button>
-                <button class="time-option" data-time="2:30">2:30</button>
-                <button class="time-option" data-time="3:00">3:00</button>
-                <button class="time-option" data-time="3:29">3:29</button>
-            </div>
-            
-            <button class="start-button" id="startButton" disabled>Comenzar</button>
-        </div>
+
+    <div class="overlay" id="startScreen">
+        <h1 style="color:white; font-size: 40px; margin-bottom: 10px;">👨‍🍳 Servicio Secuencial</h1>
+        <p style="color:#bdc3c7; text-align: center; max-width: 500px; line-height: 1.6;">
+            <strong>El Ciclo de Servicio:</strong><br>
+            1. Mira el pedido 👀<br>
+            2. Entrega la comida 🍔<br>
+            3. El cliente se va 👋<br>
+            4. El siguiente avanza 👣<br>
+            5. ¡Repite!
+        </p>
+        <button class="btn-start" onclick="startGame()">Iniciar Servicio</button>
     </div>
 
-    <!-- Pantalla de Juego -->
-    <div class="game-screen" id="gameScreen">
-        <header>
-            <div class="time-display" id="timeDisplay">11:00 AM</div>
-            <div class="game-stats">
-                <div class="stat-item">
-                    <span class="stat-icon">👥</span>
-                    <span class="stat-label">Atendidos</span>
-                    <span class="stat-value" id="servedCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">⏱️</span>
-                    <span class="stat-label">Espera</span>
-                    <span class="stat-value" id="waitTime">15 min</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">🪑</span>
-                    <span class="stat-label">Ocupados</span>
-                    <span class="stat-value" id="occupiedSeats">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">💰</span>
-                    <span class="stat-label">Ingresos</span>
-                    <span class="stat-value" id="revenueCount">$0</span>
-                </div>
-            </div>
-        </header>
-
-        <div class="scene-container">
-            <div class="background-decoration">
-                <div class="bg-circle"></div>
-                <div class="bg-circle"></div>
-                <div class="bg-circle"></div>
+    <div class="main-layout">
+        <!-- SECCIÓN DE JUEGO -->
+        <div class="game-section">
+            <div class="top-header">
+                <div class="top-stat">🕒 <span id="clock">11:00</span></div>
+                <div class="top-stat">💰 <span id="money">$0</span></div>
             </div>
 
-            <!-- Botón de volver al menú -->
-            <button class="back-to-menu" id="backToMenu">
-                <span>⬅️</span>
-                <span>Menú Principal</span>
-            </button>
-
-            <!-- Indicador de tráfico -->
-            <div class="peak-indicator" id="peakIndicator">
-                <span id="trafficIcon">🟡</span>
-                <span id="trafficText">Presión Media</span>
-            </div>
-
-            <!-- Botón de Estados unificado -->
-            <button class="status-toggle" id="statusToggle">
-                <span class="status-icon">📊</span>
-                <span>Estadísticas</span>
-            </button>
-
-            <!-- Tabla de información unificada -->
-            <div class="info-table" id="infoTable">
-                <h3>Estado del Restaurante</h3>
-                
-                <div class="info-row">
-                    <div class="info-label">
-                        <span class="info-icon people-icon">👥</span>
-                        <span>En fila</span>
-                    </div>
-                    <div class="info-value" id="peopleCount">60</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">
-                        <span class="info-icon seats-icon">🪑</span>
-                        <span>Asientos</span>
-                    </div>
-                    <div class="seats-info">
-                        <div class="seats-main" id="seatsMain">210 libres</div>
-                        <div class="seats-detail" id="seatsDetail">0 ocupados / 210 total</div>
-                    </div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">
-                        <span>⚡</span>
-                        <span>Estrés Cliente</span>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <div class="stress-bar">
-                            <div class="stress-fill stress-low" id="customerStressBar"></div>
-                        </div>
-                        <span class="stress-level" id="customerStressLevel">25%</span>
-                    </div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">
-                        <span>👨‍🍳</span>
-                        <span>Estrés Trabajador</span>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <div class="stress-bar">
-                            <div class="stress-fill stress-low" id="workerStressBar"></div>
-                        </div>
-                        <span class="stress-level" id="workerStressLevel">25%</span>
-                    </div>
-                </div>
-                
-                <div class="metrics-section">
-                    <div class="metrics-title">Métricas del Sistema</div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">
-                            <span>📊</span>
-                            <span>Tasa Llegada</span>
-                        </div>
-                        <div class="info-value" id="arrivalRate">3.5/min</div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">
-                            <span>⚙️</span>
-                            <span>Velocidad Sistema</span>
-                        </div>
-                        <div class="info-value" id="systemSpeed">4.0/min</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="restaurant-area">
+            <div class="game-area">
                 <div class="floor"></div>
-                <div class="floor-lines"></div>
-
-                <div class="queue-line" id="queueLine">
-                    <!-- Los clientes se generarán dinámicamente -->
-                </div>
-
-                <div class="counter">
-                    <div class="counter-shine"></div>
-                    
-                    <!-- Área de visualización del menú seleccionado -->
-                    <div class="selected-menu">
-                        <div id="selectedItemsDisplay">
-                            <span class="empty-selection">Selecciona platos</span>
-                        </div>
-                    </div>
-
-                    <!-- Área de selección de comida -->
-                    <div class="food-selection">
-                        <!-- SOPA -->
-                        <div class="food-item" data-food="sopa" data-name="Sopa">
-                            <img src="sopa.png" 
-                                 alt="Sopa" 
-                                 title="Sopa">
-                        </div>
-
-                        <!-- ENSALADA -->
-                        <div class="food-item" data-food="ensalada" data-name="Ensalada">
-                            <img src="ensalada.png" 
-                                 alt="Ensalada" 
-                                 title="Ensalada">
-                        </div>
-
-                        <!-- ARROZ -->
-                        <div class="food-item" data-food="arroz" data-name="Arroz">
-                            <img src="arroz.png" 
-                                 alt="Arroz" 
-                                 title="Arroz">
-                        </div>
-
-                        <!-- CARNE -->
-                        <div class="food-item" data-food="carne" data-name="Carne">
-                            <img src="cerdo.png" 
-                                 alt="Carne" 
-                                 title="Carne">
-                        </div>
-
-                        <!-- PAPA -->
-                        <div class="food-item" data-food="papa" data-name="Papá">
-                            <img src="papa.png" 
-                                 alt="Papa cocida" 
-                                 title="Papa">
-                        </div>
-                    </div>
-
-                    <!-- Botón de confirmación -->
-                    <button class="confirm-button" id="confirmButton" disabled>
-                        Confirmar
-                    </button>
-                </div>
+                <div class="queue-container" id="queueContainer"></div>
+                <div style="position: absolute; bottom: 0; width: 100%; height: 20px; background: #7f8c8d; z-index: 50;"></div>
             </div>
-        </div>
-    </div>
 
-    <!-- Modal de pago -->
-    <div class="payment-modal" id="paymentModal">
-        <div class="payment-content">
-            <div class="payment-header">
-                <h2 class="payment-title">Tarifa</h2>
+            <div class="kitchen-panel">
+                <button class="food-btn" onclick="serveOrder('🍔')">🍔<span>Burger</span></button>
+                <button class="food-btn" onclick="serveOrder('🍟')">🍟<span>Papas</span></button>
+                <button class="food-btn" onclick="serveOrder('🥤')">🥤<span>Soda</span></button>
+                <button class="food-btn" onclick="serveOrder('🍦')">🍦<span>Helado</span></button>
             </div>
             
-            <div class="payment-options">
-                <div class="payment-option" data-price="normal" data-amount="13000">
-                    <div class="payment-option-header">
-                        <span class="payment-option-title">Normal</span>
-                        <span class="payment-option-price">$13.000</span>
-                    </div>
-                </div>
-                
-                <div class="payment-option" data-price="subsidized" data-amount="3000">
-                    <div class="payment-option-header">
-                        <span class="payment-option-title">Subsidiada</span>
-                        <span class="payment-option-price">$3.000</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="payment-actions">
-                <button class="payment-button payment-cancel" id="cancelPayment">Cancelar</button>
-                <button class="payment-button payment-confirm" id="confirmPayment" disabled>Pagar</button>
-            </div>
+            <div id="feedbackDisplay" class="feedback"></div>
         </div>
+
+        <!-- SIDEBAR DE ESTADÍSTICAS -->
+        <aside class="stats-sidebar">
+            <div class="sidebar-title">Métricas en Vivo</div>
+            <div class="metric-card">
+                <div class="metric-header"><div class="metric-label">👥 Fila</div><div class="metric-value" id="totalQueueVal">60</div></div>
+                <div class="progress-track"><div class="progress-fill fill-safe" id="queueBar" style="width: 20%"></div></div>
+            </div>
+            <div class="metric-card" style="margin-top: 20px;">
+                <div class="metric-header"><div class="metric-label">🍔 Hambre Prom.</div><div class="metric-value" id="hungerVal">0%</div></div>
+                <div class="progress-track"><div class="progress-fill fill-safe" id="hungerBar" style="width: 0%"></div></div>
+            </div>
+            <div class="metric-card" style="margin-top: 20px;">
+                <div class="metric-header"><div class="metric-label">😡 Estrés Total</div><div class="metric-value" id="stressVal">0%</div></div>
+                <div class="progress-track"><div class="progress-fill fill-safe" id="stressBar" style="width: 0%"></div></div>
+            </div>
+        </aside>
     </div>
 
     <script>
-    // Sistema de Restaurante con Modelo Matemático Avanzado
-    class RestaurantGame {
-        constructor() {
-            // Constantes configurables del modelo matemático
-            this.T_OPEN = 0; // 11:00 AM en minutos desde el inicio
-            this.T_CLOSE = 280; // 3:40 PM en minutos desde el inicio
-            this.INITIAL_QUEUE = 60; // Personas esperando al abrir
-            this.V_SYS = 4.0; // Velocidad de Sistema: Personas procesadas por minuto
-            this.T_EAT = 45; // Tiempo de Comida: Minutos que un cliente ocupa un asiento
-            this.CAPACITY_REAL = 210; // Asientos Efectivos
+        // --- CONFIGURACIÓN ---
+        const simulationData = [
+            { minute: 0, queue: 60 }, { minute: 60, queue: 100 }, 
+            { minute: 130, queue: 290 }, { minute: 180, queue: 240 }, 
+            { minute: 290, queue: 0 }
+        ];
+        const MENU = ['🍔', '🍟', '🥤', '🍦'];
 
-            // Variables de estado del juego
-            this.startTime = null;
-            this.currentTime = 0; // Minutos desde las 11:00 AM
-            this.queueLength = this.INITIAL_QUEUE; // Personas en fila F(t)
-            this.servedCustomers = 0;
-            this.totalRevenue = 0;
-            this.occupiedSeats = 0;
-            this.customerStress = 0;
-            this.workerStress = 0;
-            this.selectedTime = null;
-            this.gameStarted = false;
+        // --- ESTADO ---
+        let totalSeconds = 0; 
+        let money = 0;
+        let globalQueue = []; 
+        let isAnimating = false; // Bloqueo para evitar spam de clics durante animaciones
 
-            // Estado guardado para mantener continuidad
-            this.savedState = null;
-
-            // Registro histórico para cálculos
-            this.entriesLog = {}; // Objeto para registrar entradas por minuto
-            this.diningRoomLog = {}; // Objeto para registrar salidas del comedor
-
-            // Variables de UI
-            this.maxCustomersInUI = 8; // Máximo de clientes a mostrar en la UI
-
-            this.initializeEventListeners();
-        }
-
-        // --- FUNCIÓN DE SIMULACIÓN MINUTO A MINUTO ---
-        simulateUpTo(currentMinute) {
-            // Resetear variables de estado
-            this.queueLength = this.INITIAL_QUEUE;
-            this.occupiedSeats = 0;
-            this.servedCustomers = 0;
-            this.totalRevenue = 0;
-            this.entriesLog = {};
-            this.diningRoomLog = {};
-            this.customerStress = 0;
-            this.workerStress = 0;
-
-            for (let t = 0; t <= currentMinute; t++) {
-                // Calcular la tasa de llegada y el cambio neto en la fila
-                const arrivalRate = this.getArrivalRate(t);
-                const netChange = arrivalRate - this.V_SYS;
-                this.queueLength = Math.max(0, this.queueLength + netChange);
-
-                // Cuántas personas entran al comedor ese minuto (máx capacidad y fila)
-                const entering = Math.min(this.V_SYS, this.queueLength);
-                this.entriesLog[t] = entering;
-                this.queueLength -= entering;
-
-                // Registrar salida del comedor según tiempo de comida
-                if (t >= this.T_EAT) {
-                    this.diningRoomLog[t] = this.entriesLog[t - this.T_EAT] || 0;
-                } else {
-                    this.diningRoomLog[t] = 0;
-                }
-
-                // Calcular ocupación en comedor
-                let totalInDiningRoom = 0;
-                for (let m = Math.max(0, t - this.T_EAT); m <= t; m++) {
-                    totalInDiningRoom += (this.entriesLog[m] || 0);
-                    totalInDiningRoom -= (this.diningRoomLog[m] || 0);
-                }
-                this.occupiedSeats = Math.min(this.CAPACITY_REAL, Math.max(0, totalInDiningRoom));
-
-                // Estimar ingresos (aquí puedes mejorar según tu lógica de menú)
-                this.servedCustomers += entering;
-                this.totalRevenue += entering * 17000; // Valor base de venta para ejemplo
-
-                // Calcular estrés cada minuto
-                const waitTime = this.queueLength / this.V_SYS;
-                this.customerStress = Math.min(100, Math.pow(waitTime / 60, 2) * 100);
-                const cashierStress = this.queueLength > 5 ? 100 : 50;
-                const floorStress = (this.occupiedSeats / this.CAPACITY_REAL) * 100;
-                this.workerStress = (cashierStress * 0.6) + (floorStress * 0.4);
-            }
-        }
-        // ------------------------------------------------
-
-        initializeEventListeners() {
-            // Pantalla de inicio
-            const timeOptions = document.querySelectorAll('.time-option');
-            const startButton = document.getElementById('startButton');
-
-            timeOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    timeOptions.forEach(opt => opt.classList.remove('selected'));
-                    option.classList.add('selected');
-                    this.selectedTime = option.dataset.time;
-                    startButton.disabled = false;
-                });
-            });
-
-            startButton.addEventListener('click', () => {
-                this.startGame();
-            });
-
-            // Botón de volver al menú
-            document.getElementById('backToMenu').addEventListener('click', () => {
-                this.returnToMenu();
-            });
-
-            // Lógica del juego
-            this.setupGameLogic();
-        }
-
-        startGame() {
-            this.startTime = this.selectedTime;
-            this.currentTime = this.timeToMinutes(this.startTime);
-
-            // Ocultar pantalla de inicio
+        function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
-
-            // Mostrar pantalla de juego
-            setTimeout(() => {
-                document.getElementById('gameScreen').classList.add('active');
-                this.initializeGame();
-            }, 500);
+            // Generar fila inicial
+            for(let i=0; i<60; i++) {
+                let arrival = -Math.random() * 2400; 
+                globalQueue.push(arrival);
+            }
+            globalQueue.sort((a,b) => a - b);
+            updateVisualsFromQueue();
+            updateStats();
         }
 
-        returnToMenu() {
-            // Guardar estado actual antes de volver
-            this.saveCurrentState();
+        function serveOrder(item) {
+            if (isAnimating) return; // Bloquear inputs mientras hay animación
+            
+            // Buscar al cliente en posición 0 (Frente del mostrador)
+            const currentEl = document.querySelector('.customer.pos-0');
+            if (!currentEl) return;
 
-            // Mostrar pantalla de inicio
-            document.getElementById('gameScreen').classList.remove('active');
-            document.getElementById('startScreen').classList.remove('hidden');
+            // Obtener el pedido guardado en el dataset del elemento HTML
+            const expectedOrder = currentEl.dataset.order;
 
-            // Limpiar selección de tiempo
-            const timeOptions = document.querySelectorAll('.time-option');
-            timeOptions.forEach(opt => opt.classList.remove('selected'));
-            document.getElementById('startButton').disabled = true;
+            if (item === expectedOrder) {
+                // 1. FEEDBACK INMEDIATO
+                money += 15;
+                showFeedback("+$15", "good");
+                
+                // Bloquear juego para la secuencia cinemática
+                isAnimating = true;
 
-            // Reiniciar variables
-            this.selectedTime = null;
-            this.gameStarted = false;
-            this.servedCustomers = 0;
-            this.totalRevenue = 0;
-        }
+                // 2. ANIMACIÓN DE SALIDA (Cliente se va)
+                currentEl.classList.add('leaving'); // CSS trigger
 
-        saveCurrentState() {
-            // Guardar el estado actual para mantener continuidad
-            this.savedState = {
-                currentTime: this.currentTime,
-                queueLength: this.queueLength,
-                servedCustomers: this.servedCustomers,
-                totalRevenue: this.totalRevenue,
-                occupiedSeats: this.occupiedSeats,
-                entriesLog: {...this.entriesLog},
-                diningRoomLog: {...this.diningRoomLog}
-            };
-        }
+                // 3. ESPERAR Y AVANZAR (El "Ciclo")
+                setTimeout(() => {
+                    // a. Eliminar datos lógicos
+                    globalQueue.shift();
+                    
+                    // b. Avanzar tiempo y calcular llegadas
+                    advanceTime(30);
 
-        loadSavedState() {
-            // Cargar el estado guardado si existe
-            if (this.savedState) {
-                this.currentTime = this.savedState.currentTime;
-                this.queueLength = this.savedState.queueLength;
-                this.servedCustomers = this.savedState.servedCustomers;
-                this.totalRevenue = this.savedState.totalRevenue;
-                this.occupiedSeats = this.savedState.occupiedSeats;
-                this.entriesLog = {...this.savedState.entriesLog};
-                this.diningRoomLog = {...this.savedState.diningRoomLog};
+                    // c. Liberar bloqueo
+                    isAnimating = false;
+
+                }, 500); // Tiempo que tarda la animación .leaving
+
+            } else {
+                showFeedback("¡Error!", "bad");
+                // Penalización sin animación de salida
+                advanceTime(10);
             }
         }
 
-        timeToMinutes(timeStr) {
-            // Convertir hora seleccionada a minutos desde 11:00 AM
-            const [timePart] = timeStr.split(' ');
-            let [hours, minutes] = timePart.split(':').map(Number);
-
-            // Convertir a formato 24 horas
-            if (hours < 11) {
-                hours += 12;
+        function advanceTime(seconds) {
+            totalSeconds += seconds;
+            
+            // Calcular nuevas llegadas
+            const currentMinute = totalSeconds / 60;
+            const targetSize = getInterpolatedQueue(currentMinute);
+            const diff = targetSize - globalQueue.length;
+            
+            if (diff > 0) {
+                for(let i=0; i<diff; i++) {
+                    globalQueue.push(totalSeconds);
+                }
             }
 
-            // Calcular minutos desde las 11:00 AM
-            const totalMinutes = (hours * 60 + minutes) - (11 * 60);
-            return Math.max(0, totalMinutes);
+            updateVisualsFromQueue(); // Aquí se redibuja la fila y los de atrás pasan adelante
+            updateStats();
+            updateClock();
         }
 
-        minutesToTime(minutes) {
-            // Convertir minutos desde 11:00 AM a hora real
-            const totalMinutes = (11 * 60) + minutes;
-            const hours = Math.floor(totalMinutes / 60);
-            const mins = Math.round(totalMinutes % 60);
-            const period = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+        // --- GESTIÓN VISUAL ---
+        function updateVisualsFromQueue() {
+            const container = document.getElementById('queueContainer');
+            
+            // Para mantener la suavidad, no borramos todo.
+            // Pero para asegurar consistencia con la fila lógica, regeneraremos los primeros 5.
+            // El truco visual es que al regenerar, el que era pos-1 ahora tendrá clase pos-0,
+            // y CSS hará la transición de posición (transform) suavemente.
+            
+            container.innerHTML = ''; // Limpieza simple (en un framework usaríamos diffing)
 
-            return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+            const limit = Math.min(globalQueue.length, 5);
+            
+            for(let i=0; i<limit; i++) {
+                const arrival = globalQueue[i];
+                // Determinar pedido consistente
+                const orderIndex = Math.abs(Math.floor(arrival)) % 4;
+                const order = MENU[orderIndex]; 
+                
+                const el = document.createElement('div');
+                el.className = `customer pos-${i}`; // La clase define la posición X/Y/Scale
+                el.dataset.order = order; // Guardar pedido en DOM
+                
+                // Variación visual
+                const variant = (Math.abs(Math.floor(arrival)) % 3) + 1; 
+                
+                // Estado de ánimo
+                let moodClass = '';
+                let icon = '';
+                if (i === 0) {
+                    const wait = (totalSeconds - arrival) / 60;
+                    if(wait > 60) { moodClass = 'mood-angry'; icon = '😡'; }
+                }
+
+                el.innerHTML = `
+                    <div class="order-bubble">${order}</div>
+                    <div class="c-body-group var-${variant} ${moodClass}">
+                        <div class="c-head">
+                            ${icon ? `<div style="position:absolute;top:-30px;left:10px;font-size:20px;">${icon}</div>` : ''}
+                            <div class="c-eye eye-l"></div>
+                            <div class="c-eye eye-r"></div>
+                        </div>
+                        <div class="c-torso"></div>
+                    </div>
+                `;
+                
+                container.appendChild(el);
+
+                // Retraso para mostrar el globo del nuevo cliente en pos-0
+                if (i === 0) {
+                    setTimeout(() => {
+                        const bubble = el.querySelector('.order-bubble');
+                        if(bubble) bubble.classList.add('show');
+                    }, 400); // Espera a que termine de deslizarse a la posición 0
+                }
+            }
         }
 
-        initializeGame() {
-            this.gameStarted = true;
+        // --- UTILIDADES ---
+        function getInterpolatedQueue(min) {
+            let i = 0;
+            while (i < simulationData.length - 1 && simulationData[i+1].minute <= min) i++;
+            const start = simulationData[i];
+            const end = simulationData[i+1] || start;
+            const progress = (min - start.minute) / (end.minute - start.minute || 1);
+            return Math.round(start.queue + (end.queue - start.queue) * progress);
+        }
 
-            // Cargar estado guardado si existe
-            this.loadSavedState();
-
-            // Si no hay estado guardado, establecer condiciones iniciales (CAMBIO: usar simulateUpTo)
-            if (!this.savedState) {
-                this.simulateUpTo(this.currentTime);
+        function updateStats() {
+            const count = globalQueue.length;
+            // Cálculo rápido de promedios
+            let totalWait = 0, totalHunger = 0, totalStress = 0;
+            if (count > 0) {
+                // Muestreo de los primeros 50 para rendimiento
+                const sampleSize = Math.min(count, 50);
+                for(let i=0; i<sampleSize; i++) {
+                    const waitMin = (totalSeconds - globalQueue[i]) / 60;
+                    totalWait += waitMin;
+                    totalHunger += Math.min(100, (waitMin / 40) * 100);
+                    if (waitMin > 20) totalStress += Math.min(100, ((waitMin - 20) / 40) * 100);
+                }
+                var avgHunger = totalHunger / sampleSize;
+                var avgStress = totalStress / sampleSize;
             }
 
-            this.updateTimeDisplay();
-            this.generateInitialCustomers();
-            this.updateGameStatus();
-            this.setupStatsToggle();
+            document.getElementById('totalQueueVal').innerText = count;
+            document.getElementById('hungerVal').innerText = Math.round(avgHunger || 0) + '%';
+            document.getElementById('stressVal').innerText = Math.round(avgStress || 0) + '%';
+
+            updateBar('queueBar', count / 300 * 100);
+            updateBar('hungerBar', avgHunger || 0);
+            updateBar('stressBar', avgStress || 0);
         }
 
-        // ... EL RESTO DEL CÓDIGO ES IGUAL ...
-        // Puedes mantener todos los métodos que ya tienes definidos a continuación.
-        // (No fue alterado tu flujo de lógica visual ni tus eventos de pago, menú, compra, animaciones, etc.)
+        function updateBar(id, pct) {
+            const el = document.getElementById(id);
+            el.style.width = `${Math.min(100, pct)}%`;
+            el.className = 'progress-fill';
+            if(pct < 40) el.classList.add('fill-safe');
+            else if(pct < 70) el.classList.add('fill-warn');
+            else el.classList.add('fill-danger');
+        }
 
-        // Coloca el resto (getConditionsForTime, getArrivalRate, processPurchase, etc.)
-        // justo después de la función simulateUpTo y el cambio en initializeGame.
-    }
+        function updateClock() {
+            const totalMins = (11 * 60) + (totalSeconds / 60);
+            const h = Math.floor(totalMins / 60);
+            const m = Math.floor(totalMins % 60);
+            document.getElementById('clock').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+            document.getElementById('money').innerText = `$${money}`;
+        }
 
-    // Inicializar el juego cuando se carga la página
-    document.addEventListener('DOMContentLoaded', () => {
-        new RestaurantGame();
-    });
-</script>
+        function showFeedback(txt, cls) {
+            const el = document.getElementById('feedbackDisplay');
+            el.innerText = txt;
+            el.className = `feedback ${cls}`;
+            void el.offsetWidth;
+            el.style.animation = 'none';
+            setTimeout(() => el.style.animation = '', 10);
+        }
+
+    </script>
 </body>
 </html>
