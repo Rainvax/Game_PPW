@@ -14,7 +14,7 @@
         .game-section { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; }
         
         /* SIDEBAR */
-        .stats-sidebar { width: 300px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border-left: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; display: flex; flex-direction: column; gap: 20px; color: white; box-shadow: -10px 0 30px rgba(0,0,0,0.3); z-index: 200; }
+        .stats-sidebar { width: 320px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border-left: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; display: flex; flex-direction: column; gap: 20px; color: white; box-shadow: -10px 0 30px rgba(0,0,0,0.3); z-index: 200; overflow-y: auto; }
         .sidebar-title { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #bdc3c7; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 10px; }
         .metric-card { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 15px; position: relative; }
         .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -24,6 +24,28 @@
         .progress-fill { height: 100%; width: 0%; transition: width 0.5s ease; border-radius: 5px; }
         .fill-safe { background: #2ecc71; } .fill-warn { background: #f1c40f; } .fill-danger { background: #e74c3c; }
 
+        /* INPUT TIME TRAVEL */
+        .time-input-group { display: flex; gap: 10px; flex-direction: column; }
+        .input-row { display: flex; gap: 10px; }
+        
+        .time-input {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 10px; border-radius: 8px; flex: 1;
+            font-family: monospace; font-size: 14px; text-align: center;
+            outline: none; transition: border-color 0.3s;
+        }
+        .time-input:focus { border-color: #3498db; }
+        .time-input::placeholder { color: rgba(255,255,255,0.3); }
+        
+        .jump-btn {
+            background: #3498db; color: white; border: none; border-radius: 8px;
+            padding: 0 15px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+        }
+        .jump-btn:hover { background: #2980b9; }
+        
+        .input-error { color: #e74c3c; font-size: 11px; margin-top: 5px; min-height: 15px; display: none; }
+        .input-hint { color: #95a5a6; font-size: 10px; margin-top: 2px; }
+
         /* GAME AREA */
         .game-area { flex: 1; position: relative; display: flex; justify-content: center; align-items: flex-end; perspective: 1200px; overflow: hidden; padding-bottom: 220px; }
         .floor { position: absolute; bottom: 0; left: -50%; width: 200%; height: 600px; background: repeating-linear-gradient(45deg, #34495e 0, #34495e 20px, #2c3e50 20px, #2c3e50 40px); transform: rotateX(70deg); transform-origin: bottom; z-index: 0; opacity: 0.5; }
@@ -32,17 +54,17 @@
         /* CLIENTES */
         .customer { position: absolute; bottom: 0; width: 100px; height: 220px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
         
-        /* Posiciones Z-index para que se vean uno detrás de otro */
+        /* Posiciones Z-index */
         .pos-0 { z-index: 50; transform: scale(1.2) translateY(20px); filter: brightness(1.1); } 
         .pos-1 { z-index: 49; transform: scale(1.0) translateY(-20px) translateX(60px); filter: brightness(0.9); opacity: 0.9; }
         .pos-2 { z-index: 48; transform: scale(0.9) translateY(-50px) translateX(110px); filter: brightness(0.8); opacity: 0.8; }
         .pos-3 { z-index: 47; transform: scale(0.85) translateY(-70px) translateX(150px); filter: brightness(0.7); opacity: 0.7; }
         .pos-4 { z-index: 46; transform: scale(0.8) translateY(-90px) translateX(180px); filter: brightness(0.6); opacity: 0.6; }
         
-        /* Animación de Salida (El paso clave 3) */
+        /* Animación de Salida */
         .customer.leaving {
             animation: leaveRight 0.5s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53);
-            z-index: 100 !important; /* Pasa por enfrente */
+            z-index: 100 !important; 
         }
         @keyframes leaveRight {
             0% { transform: scale(1.2) translateY(20px); opacity: 1; }
@@ -67,7 +89,7 @@
         .mood-angry .c-body-group { animation: shake 0.5s infinite; }
         @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(2deg); } }
 
-        /* BURBUJA DE PEDIDO (Paso clave 5) */
+        /* BURBUJA DE PEDIDO */
         .order-bubble { 
             position: absolute; top: -90px; right: -40px; 
             background: white; padding: 10px 20px; border-radius: 20px; 
@@ -142,7 +164,17 @@
 
         <!-- SIDEBAR DE ESTADÍSTICAS -->
         <aside class="stats-sidebar">
-            <div class="sidebar-title">Métricas en Vivo</div>
+            <div class="sidebar-title">Saltar Tiempo</div>
+            <div class="time-input-group">
+                <div class="input-row">
+                    <input type="text" id="timeInput" class="time-input" placeholder="Ej: 1:30 PM" onkeypress="handleEnter(event)">
+                    <button class="jump-btn" onclick="jumpToCustomTime()">IR</button>
+                </div>
+                <div id="inputError" class="input-error">Formato inválido o fuera de rango</div>
+                <div class="input-hint">Rango: 11:00 AM - 3:40 PM</div>
+            </div>
+
+            <div class="sidebar-title" style="margin-top:20px;">Métricas en Vivo</div>
             <div class="metric-card">
                 <div class="metric-header"><div class="metric-label">👥 Fila</div><div class="metric-value" id="totalQueueVal">60</div></div>
                 <div class="progress-track"><div class="progress-fill fill-safe" id="queueBar" style="width: 20%"></div></div>
@@ -155,128 +187,235 @@
                 <div class="metric-header"><div class="metric-label">😡 Estrés Total</div><div class="metric-value" id="stressVal">0%</div></div>
                 <div class="progress-track"><div class="progress-fill fill-safe" id="stressBar" style="width: 0%"></div></div>
             </div>
+            <div class="metric-card" style="margin-top: 20px;">
+                <div class="metric-header"><div class="metric-label">🪑 Asientos</div><div class="metric-value" id="seatCount">0</div></div>
+                <div class="progress-track"><div class="progress-fill fill-green" id="barSeats" style="width: 0%"></div></div>
+            </div>
+            
+            <div style="margin-top:auto; font-size:12px; color:#7f8c8d; text-align:center; padding-top: 20px;">
+                <span id="statusText">Estado: Apertura</span>
+            </div>
         </aside>
     </div>
 
     <script>
         // --- CONFIGURACIÓN ---
-        const simulationData = [
-            { minute: 0, queue: 60 }, { minute: 60, queue: 100 }, 
-            { minute: 130, queue: 290 }, { minute: 180, queue: 240 }, 
-            { minute: 290, queue: 0 }
+        const DATA_TABLE = [
+            { t: 0, q: 60, s: 0, st: "Apertura" },
+            { t: 10, q: 46, s: 40, st: "Subiendo" },
+            { t: 20, q: 33, s: 41, st: "Estable Bajo" },
+            { t: 30, q: 18, s: 43, st: "Estable Bajo" },
+            { t: 40, q: 15, s: 36, st: "Valle" },
+            { t: 50, q: 48, s: 67, st: "Subida Rápida" },
+            { t: 60, q: 85, s: 106, st: "Llenando" },
+            { t: 70, q: 112, s: 148, st: "Llenando" },
+            { t: 80, q: 141, s: 174, st: "Pico Inicial" },
+            { t: 90, q: 171, s: 182, st: "Saturado" },
+            { t: 100, q: 200, s: 175, st: "Fluctuación" },
+            { t: 110, q: 231, s: 186, st: "Fluctuación" },
+            { t: 120, q: 261, s: 178, st: "Fluctuación" },
+            { t: 130, q: 292, s: 183, st: "Máximo Estrés" },
+            { t: 140, q: 282, s: 179, st: "Saturado" },
+            { t: 150, q: 271, s: 172, st: "Bajada leve" },
+            { t: 160, q: 261, s: 181, st: "Repunte leve" },
+            { t: 170, q: 250, s: 177, st: "Estable Alto" },
+            { t: 180, q: 240, s: 178, st: "Estable Alto" },
+            { t: 190, q: 231, s: 168, st: "Inicio Descenso" },
+            { t: 200, q: 221, s: 142, st: "Caída Fuerte" },
+            { t: 210, q: 210, s: 115, st: "Vaciando" },
+            { t: 220, q: 200, s: 89, st: "Vaciando" },
+            { t: 230, q: 161, s: 65, st: "Vaciando" },
+            { t: 240, q: 122, s: 52, st: "Vaciando" },
+            { t: 250, q: 82, s: 48, st: "Vaciando" },
+            { t: 260, q: 42, s: 44, st: "Vaciando" },
+            { t: 270, q: 3, s: 41, st: "Fila Muriendo" },
+            { t: 280, q: 0, s: 14, st: "Casi Vacío" },
+            { t: 290, q: 0, s: 1, st: "Cierre" }
         ];
+
         const MENU = ['🍔', '🍟', '🥤', '🍦'];
 
         // --- ESTADO ---
         let totalSeconds = 0; 
         let money = 0;
         let globalQueue = []; 
-        let isAnimating = false; // Bloqueo para evitar spam de clics durante animaciones
+        let isAnimating = false; 
+        let seatCount = 0;
 
         function startGame() {
             document.getElementById('startScreen').classList.add('hidden');
-            // Generar fila inicial
-            for(let i=0; i<60; i++) {
-                let arrival = -Math.random() * 2400; 
+            initializeQueue(60, -1800); // 60 personas iniciales
+            updateVisualsFromQueue();
+            updateUI();
+        }
+
+        function initializeQueue(count, maxAgeSeconds) {
+            globalQueue = [];
+            for(let i=0; i<count; i++) {
+                let arrival = totalSeconds + (Math.random() * maxAgeSeconds); 
                 globalQueue.push(arrival);
             }
             globalQueue.sort((a,b) => a - b);
-            updateVisualsFromQueue();
-            updateStats();
         }
 
-        function serveOrder(item) {
-            if (isAnimating) return; // Bloquear inputs mientras hay animación
+        // --- SALTO TEMPORAL INTELIGENTE ---
+        function handleEnter(e) {
+            if(e.key === 'Enter') jumpToCustomTime();
+        }
+
+        function jumpToCustomTime() {
+            const input = document.getElementById('timeInput');
+            const errorMsg = document.getElementById('inputError');
+            const timeVal = input.value;
             
-            // Buscar al cliente en posición 0 (Frente del mostrador)
+            const targetMinutes = parseTime(timeVal);
+
+            if (targetMinutes === null) {
+                errorMsg.style.display = 'block';
+                input.style.borderColor = '#e74c3c';
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+            input.style.borderColor = 'rgba(255,255,255,0.2)';
+            
+            if(isAnimating) return;
+
+            totalSeconds = targetMinutes * 60;
+            const targetData = getInterpolatedData(targetMinutes);
+            money = Math.floor((targetMinutes * 2) * 12.5); 
+
+            // --- CORRECCIÓN: Forzar cola vacía si el valor interpolado es bajo ---
+            let queueSize = Math.round(targetData.queue);
+            if (targetData.queue < 0.5) {
+                queueSize = 0;
+            }
+            // --- FIN DE LA CORRECCIÓN ---
+
+            let stressFactor = -1200; 
+            if(targetMinutes > 90 && targetMinutes < 150) stressFactor = -3600;
+            
+            initializeQueue(queueSize, stressFactor);
+            seatCount = targetData.seats;
+
+            updateVisualsFromQueue();
+            updateUI();
+            
+            showFeedback(`⏩ ${input.value.toUpperCase()}`, "good");
+        }
+
+        function parseTime(timeStr) {
+            timeStr = timeStr.trim().toUpperCase();
+            const match = timeStr.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)?$/);
+            if (!match) return null;
+
+            let hour = parseInt(match[1]);
+            let minute = parseInt(match[2]);
+            const period = match[3];
+
+            if (minute < 0 || minute > 59) return null;
+
+            if (period) {
+                if (period === 'PM' && hour !== 12) hour += 12;
+                if (period === 'AM' && hour === 12) hour = 0;
+            } else {
+                if (hour >= 1 && hour <= 3) hour += 12;
+            }
+
+            const timeInMinutesOfDay = (hour * 60) + minute;
+            const startTimeInMinutes = 11 * 60; 
+            
+            const relativeMinutes = timeInMinutesOfDay - startTimeInMinutes;
+            
+            if (relativeMinutes < 0 || relativeMinutes > 280) return null;
+            
+            return relativeMinutes;
+        }
+
+        // --- LÓGICA DE JUEGO ---
+        function serveOrder(item) {
+            if (isAnimating) return; 
+            
             const currentEl = document.querySelector('.customer.pos-0');
             if (!currentEl) return;
 
-            // Obtener el pedido guardado en el dataset del elemento HTML
             const expectedOrder = currentEl.dataset.order;
 
             if (item === expectedOrder) {
-                // 1. FEEDBACK INMEDIATO
-                money += 15;
-                showFeedback("+$15", "good");
+                const currentCustomerArrival = globalQueue[0];
+                const waitMin = (totalSeconds - currentCustomerArrival) / 60;
+                const reward = waitMin < 20 ? 15 : (waitMin < 60 ? 10 : 5);
                 
-                // Bloquear juego para la secuencia cinemática
+                money += reward;
+                showFeedback(`+$${reward}`, "good");
+                
                 isAnimating = true;
+                currentEl.classList.add('leaving'); 
 
-                // 2. ANIMACIÓN DE SALIDA (Cliente se va)
-                currentEl.classList.add('leaving'); // CSS trigger
-
-                // 3. ESPERAR Y AVANZAR (El "Ciclo")
                 setTimeout(() => {
-                    // a. Eliminar datos lógicos
                     globalQueue.shift();
-                    
-                    // b. Avanzar tiempo y calcular llegadas
                     advanceTime(30);
-
-                    // c. Liberar bloqueo
                     isAnimating = false;
-
-                }, 500); // Tiempo que tarda la animación .leaving
+                }, 500); 
 
             } else {
                 showFeedback("¡Error!", "bad");
-                // Penalización sin animación de salida
-                advanceTime(10);
+                advanceTime(10); 
             }
         }
 
         function advanceTime(seconds) {
             totalSeconds += seconds;
-            
-            // Calcular nuevas llegadas
-            const currentMinute = totalSeconds / 60;
-            const targetSize = getInterpolatedQueue(currentMinute);
-            const diff = targetSize - globalQueue.length;
-            
-            if (diff > 0) {
-                for(let i=0; i<diff; i++) {
-                    globalQueue.push(totalSeconds);
+            const currentMin = totalSeconds / 60;
+
+            const targetData = getInterpolatedData(currentMin);
+            const currentQueueSize = globalQueue.length;
+
+            // --- CORRECCIÓN: Forzar cola vacía si el valor interpolado es bajo ---
+            let targetQueueSize = Math.round(targetData.queue);
+            if (targetData.queue < 0.5) {
+                targetQueueSize = 0;
+            }
+            // --- FIN DE LA CORRECCIÓN ---
+
+            if (currentQueueSize < targetQueueSize) {
+                const toAdd = targetQueueSize - currentQueueSize;
+                for(let i=0; i<toAdd; i++) {
+                    globalQueue.push(totalSeconds - (Math.random() * 300)); 
                 }
+            } else if (currentQueueSize > targetQueueSize) {
+                const toRemove = currentQueueSize - targetQueueSize;
+                globalQueue.splice(-toRemove, toRemove);
             }
 
-            updateVisualsFromQueue(); // Aquí se redibuja la fila y los de atrás pasan adelante
-            updateStats();
-            updateClock();
+            seatCount = targetData.seats;
+            updateVisualsFromQueue(); 
+            updateUI(); 
         }
 
-        // --- GESTIÓN VISUAL ---
         function updateVisualsFromQueue() {
             const container = document.getElementById('queueContainer');
-            
-            // Para mantener la suavidad, no borramos todo.
-            // Pero para asegurar consistencia con la fila lógica, regeneraremos los primeros 5.
-            // El truco visual es que al regenerar, el que era pos-1 ahora tendrá clase pos-0,
-            // y CSS hará la transición de posición (transform) suavemente.
-            
-            container.innerHTML = ''; // Limpieza simple (en un framework usaríamos diffing)
+            container.innerHTML = ''; 
 
             const limit = Math.min(globalQueue.length, 5);
             
             for(let i=0; i<limit; i++) {
                 const arrival = globalQueue[i];
-                // Determinar pedido consistente
                 const orderIndex = Math.abs(Math.floor(arrival)) % 4;
                 const order = MENU[orderIndex]; 
                 
                 const el = document.createElement('div');
-                el.className = `customer pos-${i}`; // La clase define la posición X/Y/Scale
-                el.dataset.order = order; // Guardar pedido en DOM
+                el.className = `customer pos-${i}`; 
+                el.dataset.order = order; 
                 
-                // Variación visual
                 const variant = (Math.abs(Math.floor(arrival)) % 3) + 1; 
                 
-                // Estado de ánimo
                 let moodClass = '';
                 let icon = '';
                 if (i === 0) {
                     const wait = (totalSeconds - arrival) / 60;
                     if(wait > 60) { moodClass = 'mood-angry'; icon = '😡'; }
+                    else if(wait > 20) { moodClass = 'mood-hungry'; icon = '😐'; }
                 }
 
                 el.innerHTML = `
@@ -286,6 +425,7 @@
                             ${icon ? `<div style="position:absolute;top:-30px;left:10px;font-size:20px;">${icon}</div>` : ''}
                             <div class="c-eye eye-l"></div>
                             <div class="c-eye eye-r"></div>
+                            <div class="c-mouth"></div>
                         </div>
                         <div class="c-torso"></div>
                     </div>
@@ -293,67 +433,66 @@
                 
                 container.appendChild(el);
 
-                // Retraso para mostrar el globo del nuevo cliente en pos-0
                 if (i === 0) {
                     setTimeout(() => {
                         const bubble = el.querySelector('.order-bubble');
                         if(bubble) bubble.classList.add('show');
-                    }, 400); // Espera a que termine de deslizarse a la posición 0
+                    }, 400); 
                 }
             }
         }
 
-        // --- UTILIDADES ---
-        function getInterpolatedQueue(min) {
+        function getInterpolatedData(min) {
             let i = 0;
-            while (i < simulationData.length - 1 && simulationData[i+1].minute <= min) i++;
-            const start = simulationData[i];
-            const end = simulationData[i+1] || start;
-            const progress = (min - start.minute) / (end.minute - start.minute || 1);
-            return Math.round(start.queue + (end.queue - start.queue) * progress);
+            while (i < DATA_TABLE.length - 1 && DATA_TABLE[i+1].t <= min) i++;
+            const start = DATA_TABLE[i];
+            const end = DATA_TABLE[i+1] || start;
+            const progress = (min - start.t) / (end.t - start.t || 1);
+
+            return {
+                queue: start.q + (end.q - start.q) * progress,
+                seats: start.s + (end.s - start.s) * progress,
+                state: start.st
+            };
         }
 
-        function updateStats() {
-            const count = globalQueue.length;
-            // Cálculo rápido de promedios
-            let totalWait = 0, totalHunger = 0, totalStress = 0;
-            if (count > 0) {
-                // Muestreo de los primeros 50 para rendimiento
-                const sampleSize = Math.min(count, 50);
+        function updateUI() {
+            const tMins = (11 * 60) + (totalSeconds / 60);
+            const hh = Math.floor(tMins / 60);
+            const mm = Math.floor(tMins % 60);
+            document.getElementById('clock').innerText = `${hh.toString().padStart(2,'0')}:${mm.toString().padStart(2,'0')}`;
+            document.getElementById('money').innerText = `$${money}`;
+            document.getElementById('totalQueueVal').innerText = globalQueue.length;
+            document.getElementById('seatCount').innerText = Math.round(seatCount);
+
+            const qPct = Math.min(100, (globalQueue.length / 300) * 100);
+            document.getElementById('queueBar').style.width = qPct + '%';
+            
+            const sPct = Math.min(100, (seatCount / 210) * 100);
+            document.getElementById('barSeats').style.width = sPct + '%';
+
+            let totalStress = 0;
+            let totalHunger = 0;
+            const sampleSize = Math.min(globalQueue.length, 100);
+
+            if (sampleSize > 0) {
                 for(let i=0; i<sampleSize; i++) {
-                    const waitMin = (totalSeconds - globalQueue[i]) / 60;
-                    totalWait += waitMin;
-                    totalHunger += Math.min(100, (waitMin / 40) * 100);
-                    if (waitMin > 20) totalStress += Math.min(100, ((waitMin - 20) / 40) * 100);
+                    const w = (totalSeconds - globalQueue[i]) / 60;
+                    if(w > 20) totalStress += Math.min(100, (w-20)/40 * 100);
+                    totalHunger += Math.min(100, (w / 40) * 100);
                 }
-                var avgHunger = totalHunger / sampleSize;
-                var avgStress = totalStress / sampleSize;
             }
 
-            document.getElementById('totalQueueVal').innerText = count;
-            document.getElementById('hungerVal').innerText = Math.round(avgHunger || 0) + '%';
-            document.getElementById('stressVal').innerText = Math.round(avgStress || 0) + '%';
+            const avgStress = sampleSize > 0 ? Math.round(totalStress / sampleSize) : 0;
+            const avgHunger = sampleSize > 0 ? Math.round(totalHunger / sampleSize) : 0;
 
-            updateBar('queueBar', count / 300 * 100);
-            updateBar('hungerBar', avgHunger || 0);
-            updateBar('stressBar', avgStress || 0);
-        }
+            document.getElementById('stressVal').innerText = avgStress + '%';
+            document.getElementById('stressBar').style.width = avgStress + '%';
+            document.getElementById('hungerVal').innerText = avgHunger + '%';
+            document.getElementById('hungerBar').style.width = avgHunger + '%';
 
-        function updateBar(id, pct) {
-            const el = document.getElementById(id);
-            el.style.width = `${Math.min(100, pct)}%`;
-            el.className = 'progress-fill';
-            if(pct < 40) el.classList.add('fill-safe');
-            else if(pct < 70) el.classList.add('fill-warn');
-            else el.classList.add('fill-danger');
-        }
-
-        function updateClock() {
-            const totalMins = (11 * 60) + (totalSeconds / 60);
-            const h = Math.floor(totalMins / 60);
-            const m = Math.floor(totalMins % 60);
-            document.getElementById('clock').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
-            document.getElementById('money').innerText = `$${money}`;
+            const currentData = getInterpolatedData(totalSeconds/60);
+            document.getElementById('statusText').innerText = "Estado: " + currentData.state;
         }
 
         function showFeedback(txt, cls) {
